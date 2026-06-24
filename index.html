@@ -440,24 +440,69 @@ const EXTRA_BOOST_TEMPLATES_2=[
     cost*=1.7;
   });
 })();
+// ══ TERCEIRA LEVA DE BOOSTS (mais 100, na loja!) ══
+const EXTRA_BOOST_TEMPLATES_3=[
+  ['🪷','LÓTUS SAGRADO'],['🌷','TULIPA DOURADA'],['🌹','ROSEIRAL'],['🥀','PÉTALA CAÍDA'],['🌺','HIBISCO GIGANTE'],['🌼','CAMPO DE MARGARIDAS'],
+  ['🍂','VENTO DE OUTONO'],['🍁','FOLHAGEM DOURADA'],['🌾','CELEIRO CHEIO'],['🎋','FLORESTA DE BAMBU'],['🌵','OÁSIS NO DESERTO'],['🌴','ILHA DE PALMEIRAS'],
+  ['🥕','HORTA DE CENOURAS'],['🌽','MILHARAL DOURADO'],['🥔','PLANTAÇÃO DE BATATA'],['🍅','TOMATEIRO'],['🥒','PEPINEIRO'],['🥬','HORTA VERDE'],
+  ['🍇','VINHEDO'],['🍈','MELOEIRO'],['🍉','MELANCIAL'],['🍊','POMAR DE LARANJA'],['🍋','POMAR DE LIMÃO'],['🍌','BANANAL'],
+  ['🍍','PLANTAÇÃO DE ABACAXI'],['🥭','MANGUEZAL'],['🍎','POMAR DE MAÇÃ'],['🍐','POMAR DE PERA'],['🍑','POMAR DE PÊSSEGO'],['🍒','CEREJEIRAL'],
+  ['🍓','MORANGAL'],['🫐','MIRTILAL'],['🥝','KIWIZAL'],['🥥','COQUEIRAL'],['🥑','ABACATAL'],['🌶️','PIMENTAL ARDENTE'],
+  ['🐝','APIÁRIO GIGANTE'],['🦋','JARDIM DE BORBOLETAS'],['🐞','EXÉRCITO DE JOANINHAS'],['🐌','COLÔNIA DE CARACÓIS'],['🕷️','TEIA GIGANTE'],['🦗','CORO DE GRILOS'],
+  ['🐢','SANTUÁRIO DE TARTARUGAS'],['🐍','VALE DAS COBRAS'],['🦎','ROCHEDO DOS LAGARTOS'],['🐊','PÂNTANO DOS JACARÉS'],['🐬','BAÍA DOS DELFINS'],['🐳','OCEANO DAS BALEIAS'],
+  ['🐧','GELEIRA DOS PINGUINS'],['🦅','NINHO DAS ÁGUIAS'],['🦉','TORRE DAS CORUJAS'],['🦜','SELVA DOS PAPAGAIOS'],['🦩','LAGOA DOS FLAMINGOS'],['🦢','LAGO DOS CISNES'],
+  ['🦊','TOCA DAS RAPOSAS'],['🐺','MATILHA DE LOBOS'],['🐻','CAVERNA DOS URSOS'],['🐼','FLORESTA DE BAMBU DOS PANDAS'],['🦁','SAVANA DOS LEÕES'],['🐯','JUNGLE DOS TIGRES'],
+  ['🐘','MANADA DE ELEFANTES'],['🦏','TERRITÓRIO DOS RINOCERONTES'],['🦒','SAVANA DAS GIRAFAS'],['🦓','MANADA DE ZEBRAS'],['🦌','FLORESTA DOS VEADOS'],['🦬','PLANÍCIE DOS BISÕES'],
+  ['🌅','RAIO DE SOL MATINAL'],['🌇','BRISA DA TARDE'],['🌃','CÉU NOTURNO ESTRELADO'],['🌌','GALÁXIA VERDE'],['🪐','ANEL DE SATURNO VERDE'],['🌠','CHUVA DE METEOROS VERDE'],
+  ['⚡','TEMPESTADE ELÉTRICA VERDE'],['🔥','CHAMA ETERNA DA VIDA'],['❄️','GELO PERPÉTUO'],['💨','VENDAVAL DA NATUREZA'],['🌊','MARÉ DA VIDA'],['🌪️','CICLONE VERDE'],
+  ['🏔️','CUME ETERNO'],['🗻','MONTE SAGRADO MÁXIMO'],['🌋','ERUPÇÃO DA VIDA'],['🏞️','PARAÍSO NATURAL'],['🏝️','ARQUIPÉLAGO VERDE'],['🏜️','OÁSIS INFINITO'],
+  ['🌍','TERRA COMPLETAMENTE RESTAURADA'],['🌎','HEMISFÉRIO VERDE'],['🌏','PLANETA EM EQUILÍBRIO'],['🪨','MONÓLITO ANCESTRAL'],['🪵','ÁRVORE MILENAR'],['🧊','GELEIRA ETERNA II'],
+];
+(function(){
+  let cost=1e19;
+  EXTRA_BOOST_TEMPLATES_3.forEach((t,i)=>{
+    const type=i%3;
+    const id='ex3_'+(i+1);
+    const icon=t[0],name=t[1];
+    let desc,eff;
+    if(type===0){
+      const val=Math.pow(10,12+Math.floor(i/3)*0.4);
+      desc='+'+fmt(val)+' pontos/clique';
+      eff=()=>{clickPower+=val;};
+    } else if(type===1){
+      const val=Math.pow(10,12+Math.floor(i/3)*0.4);
+      desc='+'+fmt(val)+' pontos/seg';
+      eff=()=>{autoPerSec+=val;};
+    } else {
+      const val=200+Math.floor(i/3)*30;
+      desc='Multiplicador global ×'+val;
+      eff=()=>{globalMult*=val;};
+    }
+    BOOSTS.push({id,name,icon,desc,cost:Math.floor(cost),eff});
+    cost*=1.6;
+  });
+})();
 function renderBoosts(){
   const el=document.getElementById('boostsList');if(!el)return;
   let html='';
   BOOSTS.forEach(b=>{
     const isOwned=owned.has(b.id);
-    const afford=!isOwned&&score>=b.cost;
+    const cost=getBoostCost(b);
+    const afford=!isOwned&&score>=cost;
     html+=`<div class="ucard ${isOwned?'owned':''} ${afford?'afford':''}" onclick="${isOwned?'':'buyBoost(\''+b.id+'\')'}">
       <span class="ui">${b.icon}</span>
       <div class="un"><div class="t">${b.name}${isOwned?' ✅':''}</div><div class="d">${b.desc}</div></div>
-      <div class="uc">${isOwned?'OK':fmt(b.cost)}</div>
+      <div class="uc">${isOwned?'OK':fmt(cost)}</div>
     </div>`;
   });
   el.innerHTML=html;
 }
+function getBoostCost(b){return Math.floor(b.cost*boostDiscountMult);}
 function buyBoost(id){
   const b=BOOSTS.find(x=>x.id===id);
-  if(!b||owned.has(id)||score<b.cost)return;
-  score-=b.cost;owned.add(id);dailyBuys++;
+  const cost=getBoostCost(b);
+  if(!b||owned.has(id)||score<cost)return;
+  score-=cost;owned.add(id);dailyBuys++;
   try{b.eff();}catch(e){}
   sfx('buy');
   toast(b.icon+' '+b.name+' comprado!','green');
@@ -759,9 +804,14 @@ function showBanScreen(cfg,isPreview){
   const iv=setInterval(()=>{
     left--;if(cd)cd.textContent=fmtBanTime(left);
     if(left<=0){clearInterval(iv);
-      score=Math.floor(score*cfg.penalty);updateUI();
+      if(shieldActive){
+        shieldActive=false;localStorage.setItem('cmnShield','0');
+        toast('🛡️ Escudo Verde te protegeu do banimento!','rainbow');
+      } else {
+        score=Math.floor(score*cfg.penalty);updateUI();
+        toast('⚠️ Pontos reduzidos por usar autoclicker!','red');
+      }
       localStorage.removeItem('cmnBanUntil');localStorage.removeItem('cmnBanLevel');
-      toast('⚠️ Pontos reduzidos por usar autoclicker!','red');
       document.getElementById('banScreenOv')?.remove();
     }
   },1000);
@@ -951,6 +1001,20 @@ const EXTRA_SKIN_TEMPLATES_2=[
     req*=1.32;
   });
 })();
+// ══ TERCEIRA LEVA DE SKINS (mais 22!) ══
+const EXTRA_SKIN_TEMPLATES_3=[
+  ['🐝','APICULTOR'],['🦋','COLECIONADOR DE BORBOLETAS'],['🌻','JARDINEIRO DOS GIRASSÓIS'],['🍄','CAÇADOR DE COGUMELOS'],['🌲','GUARDIÃO DA FLORESTA'],['🌊','MESTRE DAS ONDAS'],
+  ['🌋','SENHOR DOS VULCÕES'],['❄️','REI DO GELO'],['🌈','GUARDIÃO DO ARCO-ÍRIS'],['🪐','VIAJANTE ESPACIAL'],['🌌','ANDARILHO DAS ESTRELAS'],['🦄','DOMADOR DE UNICÓRNIOS'],
+  ['🐉','CAVALEIRO DO DRAGÃO'],['🦅','MESTRE DAS ÁGUIAS'],['🐬','AMIGO DOS DELFINS'],['🌳','ESPÍRITO DA ÁRVORE'],['🍀','SORTUDO SUPREMO'],['🌟','ESTRELA MÁXIMA'],
+  ['💎','COLECIONADOR DE CRISTAIS'],['🔥','MESTRE DO FOGO VERDE'],['💧','MESTRE DAS ÁGUAS'],['🌍','SALVADOR DO PLANETA'],
+];
+(function(){
+  let req=5000;
+  EXTRA_SKIN_TEMPLATES_3.forEach((t,i)=>{
+    SKINS.push({id:'esk3_'+(i+1),name:t[1],emoji:t[0],req:Math.floor(req)});
+    req*=1.6;
+  });
+})();
 let activeSkin=localStorage.getItem('cmnSkin')||'sk_folha';
 let skinChanges=0,giftsSent=0;
 function isSkinUnlocked(s){
@@ -1083,15 +1147,49 @@ const SEED_TYPES=[
   {id:'sd11',name:'SOMBRIA',            icon:'🖤',cost:300,   grow:15, poolMin:0,poolMax:3}, // 1,10,30,50 (barata e rápida)
   {id:'sd12',name:'CÓSMICA',            icon:'🪐',cost:350000,grow:480,poolMin:7,poolMax:9}, // 3000,10000,1000000
 ];
+// ══ GERADOR DE MAIS SEMENTES (pra ter 100!) ══
+const EXTRA_SEED_TEMPLATES=[
+  ['🌷','TULIPA'],['🌹','ROSA'],['🥀','ROSA MURCHA'],['🌺','HIBISCO'],['🪷','LÓTUS'],['🌼','MARGARIDA'],
+  ['🌻','GIRASSOL'],['🍂','FOLHA SECA'],['🍁','BORDO'],['🌾','TRIGO'],['🎋','BAMBU'],['🌵','CACTO'],
+  ['🌴','COQUEIRO'],['🌳','CARVALHO'],['🌲','PINHEIRO'],['🪴','VASINHO'],['🍄','COGUMELO'],['🌰','CASTANHA'],
+  ['🌶️','PIMENTA'],['🥕','CENOURA'],['🌽','MILHO'],['🥔','BATATA'],['🍅','TOMATE'],['🥒','PEPINO'],
+  ['🍇','UVA'],['🍈','MELÃO'],['🍉','MELANCIA'],['🍊','LARANJA'],['🍋','LIMÃO'],['🍌','BANANA'],
+  ['🍍','ABACAXI'],['🥭','MANGA'],['🍎','MAÇÃ'],['🍐','PERA'],['🍑','PÊSSEGO'],['🍒','CEREJA'],
+  ['🍓','MORANGO'],['🫐','MIRTILO'],['🥝','KIWI'],['🥥','COCO'],['🥑','ABACATE'],['🍆','BERINJELA'],
+  ['🐝','SEMENTE DA ABELHA'],['🦋','SEMENTE DA BORBOLETA'],['🐞','SEMENTE DA JOANINHA'],['🐌','SEMENTE DO CARACOL'],['🐛','SEMENTE DA LAGARTA'],['🦗','SEMENTE DO GRILO'],
+  ['🌙','SEMENTE LUNAR'],['⭐','SEMENTE ESTELAR'],['☀️','SEMENTE SOLAR'],['⚡','SEMENTE ELÉTRICA'],['❄️','SEMENTE GELADA'],['🔥','SEMENTE DE FOGO'],
+  ['💨','SEMENTE DO VENTO'],['🌊','SEMENTE DA ONDA'],['🌋','SEMENTE VULCÂNICA'],['🏔️','SEMENTE DA MONTANHA'],['🌫️','SEMENTE NEBLINA'],['🌪️','SEMENTE DO TORNADO'],
+  ['🧊','SEMENTE DE GELO'],['🪨','SEMENTE DE PEDRA'],['🪵','SEMENTE DE MADEIRA'],['🟢','SEMENTE VERDE PURA'],['🟡','SEMENTE DOURADA PURA'],['🟣','SEMENTE ROXA MÍSTICA'],
+  ['🔵','SEMENTE AZUL CELESTE'],['⚪','SEMENTE BRANCA PURA'],['⚫','SEMENTE NEGRA RARA'],['🔶','SEMENTE LARANJA CRISTAL'],['🔷','SEMENTE AZUL CRISTAL'],['🟤','SEMENTE TERROSA'],
+  ['🪐','SEMENTE DE SATURNO'],['🌌','SEMENTE DA VIA LÁCTEA'],['🌠','SEMENTE CADENTE'],['💫','SEMENTE TURBILHÃO'],['✨','SEMENTE BRILHANTE'],['🌈','SEMENTE BICOLOR'],
+  ['🦄','SEMENTE MÁGICA'],['🐉','SEMENTE DO DRAGÃO'],['🦅','SEMENTE DA ÁGUIA'],['🐢','SEMENTE DA TARTARUGA'],['🐬','SEMENTE DO DELFIM'],['🦉','SEMENTE DA CORUJA'],
+  ['🍀','SEMENTE DA SORTE'],['🪻','SEMENTE DE LAVANDA'],['🌿','SEMENTE VERDEJANTE'],
+];
+(function(){
+  // distribui os templates entre as raridades existentes, repetindo custos/tempos escalados
+  let idx=0;
+  EXTRA_SEED_TEMPLATES.forEach((t,i)=>{
+    const baseRarity=SEED_TYPES[i%7]; // cicla pelas 7 raridades base pra herdar pool/tempo
+    const costMult=1+Math.floor(i/7)*0.6;
+    SEED_TYPES.push({
+      id:'esd'+(i+1),name:t[1],icon:t[0],
+      cost:Math.floor(baseRarity.cost*costMult),
+      grow:baseRarity.grow,
+      poolMin:baseRarity.poolMin,poolMax:baseRarity.poolMax,
+    });
+  });
+})();
 const GARDEN_SIZE=6;
 let garden=JSON.parse(localStorage.getItem('cmnGarden')||'null')||Array(GARDEN_SIZE).fill(null);
 function saveGarden(){localStorage.setItem('cmnGarden',JSON.stringify(garden));}
 function buySeedAndPlant(seedId){
   const seed=SEED_TYPES.find(s=>s.id===seedId);if(!seed)return;
-  if(score<seed.cost){toast('Pontos insuficientes pra essa semente!','red');return;}
+  const cost=seedDiscountActive?Math.floor(seed.cost*0.5):seed.cost;
+  if(score<cost){toast('Pontos insuficientes pra essa semente!','red');return;}
   const slot=garden.findIndex(g=>g===null);
   if(slot===-1){toast('Seu jardim está cheio! Colha alguma coisa primeiro.','red');return;}
-  score-=seed.cost;updateUI();
+  score-=cost;updateUI();
+  if(seedDiscountActive){seedDiscountActive=false;toast('🧤 Desconto das Luvas Verdes aplicado!','green');}
   garden[slot]={seedId:seed.id,plantedAt:Date.now()};
   saveGarden();
   sfx('trade');toast(seed.icon+' '+seed.name+' plantada! Volte em '+seed.grow+'s.','green');
@@ -1101,8 +1199,11 @@ function harvestPlot(i){
   const plot=garden[i];if(!plot)return;
   const seed=SEED_TYPES.find(s=>s.id===plot.seedId);if(!seed)return;
   const elapsed=(Date.now()-plot.plantedAt)/1000;
-  if(elapsed<seed.grow)return;
-  const idx=seed.poolMin+Math.floor(Math.random()*(seed.poolMax-seed.poolMin+1));
+  const effGrow=seed.grow*getRegadorSpeedMult();
+  if(elapsed<effGrow)return;
+  let idx;
+  if(luckyAmuletActive){idx=seed.poolMax;luckyAmuletActive=false;toast('🧿 O Amuleto da Sorte garantiu o prêmio máximo!','rainbow');}
+  else idx=seed.poolMin+Math.floor(Math.random()*(seed.poolMax-seed.poolMin+1));
   const reward=REWARD_POOL[idx];
   score+=reward;totalEarned+=reward;
   garden[i]=null;saveGarden();
@@ -1135,15 +1236,16 @@ function renderGarden(){
     }
     const seed=SEED_TYPES.find(s=>s.id===plot.seedId);
     const elapsed=(Date.now()-plot.plantedAt)/1000;
-    const ready=elapsed>=seed.grow;
-    const pct=Math.min(100,Math.floor(elapsed/seed.grow*100));
+    const effGrow=seed.grow*getRegadorSpeedMult();
+    const ready=elapsed>=effGrow;
+    const pct=Math.min(100,Math.floor(elapsed/effGrow*100));
     if(ready){
       html+=`<div onclick="harvestPlot(${i})" style="background:#1a3a1f;border:2px solid var(--accent);border-radius:12px;padding:.6rem;text-align:center;cursor:pointer;min-height:70px;">
         <div style="font-size:1.6rem;">${seed.icon}</div>
         <div style="font-size:.55rem;color:var(--accent2);">✅ COLHER!</div>
       </div>`;
     } else {
-      const left=Math.ceil(seed.grow-elapsed);
+      const left=Math.ceil(effGrow-elapsed);
       html+=`<div style="background:var(--card);border:2px solid var(--border);border-radius:12px;padding:.6rem;text-align:center;min-height:70px;">
         <div style="font-size:1.3rem;">${seed.icon}</div>
         <div style="background:#0a2418;border-radius:6px;height:6px;overflow:hidden;margin:.3rem 0;"><div style="height:100%;width:${pct}%;background:var(--accent);"></div></div>
@@ -1190,6 +1292,20 @@ function buyRobo(){
   renderSpecialShop();
 }
 
+let regadorCount=parseInt(localStorage.getItem('cmnRegadorCount')||'0',10);
+function getRegadorSpeedMult(){return Math.max(0.1,Math.pow(0.92,regadorCount));}
+function getRegadorCost(){return Math.floor(5000*Math.pow(1.7,regadorCount));}
+function buyRegador(){
+  const cost=getRegadorCost();
+  if(score<cost){toast('Pontos insuficientes pro Regador!','red');return;}
+  score-=cost;regadorCount++;
+  localStorage.setItem('cmnRegadorCount',String(regadorCount));
+  updateUI();sfx('water');
+  const pct=Math.round((1-getRegadorSpeedMult())*100);
+  toast('💧 Regador #'+regadorCount+'! Sementes crescem '+pct+'% mais rápido agora!','rainbow');
+  renderSpecialShop();renderGarden();
+}
+
 let relogioCooldownUntil=parseInt(localStorage.getItem('cmnRelogioCooldown')||'0',10);
 function getRelogioCost(){return 5000;}
 function useRelogio(){
@@ -1214,6 +1330,85 @@ function useRelogio(){
   }
   renderSpecialShop();
 }
+
+// ══════════════════════════════════════════════════════
+// 🧰 20 ITENS ÚTEIS NOVOS — cada um faz algo de verdade
+// no jogo, igual o Relógio (não é só número que sobe)
+// ══════════════════════════════════════════════════════
+let utilityPurchases=JSON.parse(localStorage.getItem('cmnUtilityCounts')||'{}');
+function getUtilityCount(id){return utilityPurchases[id]||0;}
+function setUtilityCount(id,v){utilityPurchases[id]=v;localStorage.setItem('cmnUtilityCounts',JSON.stringify(utilityPurchases));}
+const UTILITY_ITEMS=[
+  {id:'ut1',name:'TESOURA DE PODA',icon:'✂️',baseCost:3000,desc:'Colhe TODAS as sementes prontas do jardim na hora!',
+    fn:()=>{let n=0;garden.forEach((p,i)=>{if(!p)return;const seed=SEED_TYPES.find(s=>s.id===p.seedId);const eg=seed.grow*getRegadorSpeedMult();if((Date.now()-p.plantedAt)/1000>=eg){harvestPlot(i);n++;}});return n>0?'Colheu '+n+' semente(s)!':'Nenhuma semente estava pronta ainda.';}},
+  {id:'ut2',name:'FERTILIZANTE',icon:'🧪',baseCost:8000,desc:'Faz TODAS as sementes plantadas ficarem prontas instantaneamente!',
+    fn:()=>{let n=0;garden.forEach(p=>{if(p){p.plantedAt=0;n++;}});saveGarden();renderGarden();return n>0?n+' semente(s) prontas pra colher!':'Seu jardim está vazio.';}},
+  {id:'ut3',name:'LUVAS VERDES',icon:'🧤',baseCost:2000,desc:'A próxima semente que você comprar fica com 50% de desconto!',
+    fn:()=>{seedDiscountActive=true;return 'Desconto ativo na próxima compra de semente!';}},
+  {id:'ut4',name:'BOLA DE CRISTAL',icon:'🔮',baseCost:15000,desc:'Força o clima a virar Arco-Íris agora mesmo!',
+    fn:()=>{currentWeather=WEATHER_TYPES.find(w=>w.id==='arco');weatherNextAt=Date.now()+5*60000;if(!activeMode)document.body.style.background=currentWeather.bg;renderWeatherWidget();return 'O clima virou 🌈 Arco-Íris!';}},
+  {id:'ut5',name:'ANTENA VERDE',icon:'📡',baseCost:12000,desc:'Faz o próximo evento sazonal começar agora!',
+    fn:()=>{seasonalNextAt=Date.now();tickSeasonalEvents();return 'Evento sazonal chamado!';}},
+  {id:'ut6',name:'CAIXA MISTERIOSA',icon:'🎁',baseCost:5000,desc:'Abre uma caixa com um bônus aleatório (1.000 a 100.000 pts)!',
+    fn:()=>{const v=Math.floor(1000+Math.random()*99000);score+=v;totalEarned+=v;updateUI();checkMS();checkPrestige();return '+'+fmt(v)+' pontos da caixa!';}},
+  {id:'ut7',name:'ESCUDO VERDE',icon:'🛡️',baseCost:30000,desc:'Protege você do próximo banimento por autoclicker (cancela a punição uma vez)!',
+    fn:()=>{shieldActive=true;localStorage.setItem('cmnShield','1');return 'Escudo ativado! Protege do próximo banimento.';}},
+  {id:'ut8',name:'BATERIA TURBO',icon:'⚡',baseCost:10000,desc:'Multiplica seus pontos por ×3 durante 60 segundos!',
+    fn:()=>{tempMult=Math.max(tempMult,3);tempMultExp=Date.now()+60000;return '×3 por 60 segundos!';}},
+  {id:'ut9',name:'VENTILADOR',icon:'🌪️',baseCost:6000,desc:'Sorteia um novo clima na hora (pode ser melhor ou pior)!',
+    fn:()=>{weatherNextAt=Date.now();tickWeather();return 'Clima sorteado de novo!';}},
+  {id:'ut10',name:'BÚSSOLA MÁGICA',icon:'🧭',baseCost:8000,desc:'Zera o tempo de recarga do Relógio do Tempo na hora!',
+    fn:()=>{relogioCooldownUntil=0;localStorage.setItem('cmnRelogioCooldown','0');return 'Relógio liberado pra usar de novo!';}},
+  {id:'ut11',name:'CHAVE MESTRA',icon:'🗝️',baseCost:40000,desc:'Desbloqueia uma skin aleatória que ainda estava trancada, de graça!',
+    fn:()=>{const locked=SKINS.filter(s=>!isSkinUnlocked(s)&&!s.shopOnly);if(!locked.length)return 'Você já tem todas as skins disponíveis!';const pick=locked[Math.floor(Math.random()*locked.length)];pick.req=0;pick.achv=null;renderSkinsList();return 'Desbloqueou: '+pick.emoji+' '+pick.name+'!';}},
+  {id:'ut12',name:'DADO DA SORTE',icon:'🎲',baseCost:5000,desc:'50% de chance de ganhar um bônus GIGANTE, ou nada acontece!',
+    fn:()=>{if(Math.random()<.5){const v=Math.floor(50000+Math.random()*450000);score+=v;totalEarned+=v;updateUI();checkMS();checkPrestige();return '🎉 GANHOU +'+fmt(v)+' pontos no dado!';}return '😅 O dado não deu sorte essa vez!';}},
+  {id:'ut13',name:'CAIXA DE FERRAMENTAS',icon:'🧰',baseCost:25000,desc:'Reduz o custo de TODOS os boosts em 2% pra sempre (pode comprar várias vezes)!',
+    fn:()=>{boostDiscountMult*=0.98;return 'Boosts agora custam '+Math.round((1-boostDiscountMult)*100)+'% mais barato!';}},
+  {id:'ut14',name:'AREIA DO TEMPO',icon:'⏳',baseCost:4000,desc:'Libera o presente e a troca com amigos pra usar de novo hoje!',
+    fn:()=>{localStorage.removeItem('cmnLastGiftDate');localStorage.removeItem('cmnLastTradeDate');return 'Presente e troca liberados de novo!';}},
+  {id:'ut15',name:'TERMÔMETRO',icon:'🌡️',baseCost:9000,desc:'Trava o clima atual por 5 minutos (não muda sozinho nesse tempo)!',
+    fn:()=>{weatherNextAt=Date.now()+5*60000;return 'Clima '+currentWeather.name+' travado por 5 minutos!';}},
+  {id:'ut16',name:'BALDE DE ÁGUA',icon:'🪣',baseCost:1500,desc:'Acelera a semente que está mais perto de ficar pronta (some com o tempo restante dela)!',
+    fn:()=>{let best=-1,bestLeft=Infinity;garden.forEach((p,i)=>{if(!p)return;const seed=SEED_TYPES.find(s=>s.id===p.seedId);const eg=seed.grow*getRegadorSpeedMult();const left=eg-(Date.now()-p.plantedAt)/1000;if(left>0&&left<bestLeft){bestLeft=left;best=i;}});if(best===-1)return 'Nenhuma semente crescendo agora.';garden[best].plantedAt=0;saveGarden();renderGarden();return 'Semente regada e já tá pronta!';}},
+  {id:'ut17',name:'POEIRA DE ESTRELA',icon:'🌟',baseCost:200000,desc:'Dá +1 🍃 de prestígio na hora!',
+    fn:()=>{prestigeStars+=1;renderPres();return '+1 🍃 de prestígio!';}},
+  {id:'ut18',name:'PENA DE PÁSSARO',icon:'🪶',baseCost:7000,desc:'+5 no seu combo máximo registrado (ajuda em conquistas de combo)!',
+    fn:()=>{maxComboEver+=5;checkMS();return 'Combo máximo +5!';}},
+  {id:'ut19',name:'SINO DA FLORESTA',icon:'🔔',baseCost:3000,desc:'Sorteia novas missões diárias agora (perde o progresso das atuais)!',
+    fn:()=>{localStorage.removeItem('cmnDaily');dailyState=null;initDaily();renderDailyList();return 'Novas missões diárias sorteadas!';}},
+  {id:'ut20',name:'AMULETO DA SORTE',icon:'🧿',baseCost:35000,desc:'A próxima semente que você colher dá com certeza a MELHOR recompensa possível dela!',
+    fn:()=>{luckyAmuletActive=true;return 'Próxima colheita vai dar o prêmio máximo!';}},
+];
+let seedDiscountActive=false;
+let shieldActive=localStorage.getItem('cmnShield')==='1';
+let boostDiscountMult=parseFloat(localStorage.getItem('cmnBoostDiscount')||'1');
+let luckyAmuletActive=false;
+function getUtilityCost(item){return Math.floor(item.baseCost*Math.pow(1.5,getUtilityCount(item.id)));}
+function buyUtility(id){
+  const item=UTILITY_ITEMS.find(x=>x.id===id);if(!item)return;
+  const cost=getUtilityCost(item);
+  if(score<cost){toast('Pontos insuficientes!','red');return;}
+  score-=cost;setUtilityCount(id,getUtilityCount(id)+1);
+  if(item.id==='ut13')localStorage.setItem('cmnBoostDiscount',String(boostDiscountMult*0.98));
+  updateUI();sfx('trade');
+  const msg=item.fn();
+  toast(item.icon+' '+item.name+': '+msg,'rainbow');
+  renderSpecialShop();renderBoosts();
+}
+function renderUtilityShop(){
+  let html='';
+  UTILITY_ITEMS.forEach(item=>{
+    const cost=getUtilityCost(item);
+    const count=getUtilityCount(item.id);
+    html+=`<div class="ucard ${score>=cost?'afford':''}" onclick="buyUtility('${item.id}')">
+      <span class="ui">${item.icon}</span>
+      <div class="un"><div class="t">${item.name}${count?' (usado '+count+'x)':''}</div><div class="d">${item.desc}</div></div>
+      <div class="uc">${fmt(cost)}</div>
+    </div>`;
+  });
+  return html;
+}
 function renderSpecialShop(){
   const el=document.getElementById('specialShopList');if(!el)return;
   let html='';
@@ -1231,6 +1426,12 @@ function renderSpecialShop(){
     <div class="un"><div class="t">ROBÔ JARDINEIRO (já tem ${roboCount})</div><div class="d">+pontos/seg permanente, pode comprar de novo (fica mais caro)</div></div>
     <div class="uc">${fmt(roboCost)}</div>
   </div>`;
+  const regadorCost=getRegadorCost();
+  html+=`<div class="ucard ${score>=regadorCost?'afford':''}" onclick="buyRegador()">
+    <span class="ui">💧</span>
+    <div class="un"><div class="t">REGADOR (já tem ${regadorCount})</div><div class="d">Faz suas sementes crescerem mais rápido! Atual: ${Math.round((1-getRegadorSpeedMult())*100)}% mais rápido. Pode comprar várias vezes.</div></div>
+    <div class="uc">${fmt(regadorCost)}</div>
+  </div>`;
   const now=Date.now();
   const onCooldown=now<relogioCooldownUntil;
   const cdLeft=Math.ceil((relogioCooldownUntil-now)/1000);
@@ -1239,6 +1440,7 @@ function renderSpecialShop(){
     <div class="un"><div class="t">RELÓGIO DO TEMPO</div><div class="d">${onCooldown?'Recarregando: '+cdLeft+'s':'Dispara um evento aleatório na hora! (1min de recarga)'}</div></div>
     <div class="uc">${onCooldown?'⏳':fmt(getRelogioCost())}</div>
   </div>`;
+  html+=renderUtilityShop();
   el.innerHTML=html;
 }
 setInterval(()=>{

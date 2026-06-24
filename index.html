@@ -1,0 +1,1665 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<title>🌱 Clicker Master 2: Natureza</title>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+<style>
+:root{
+  --bg:#03140a;--card:#05200f;--card2:#0a3018;--border:#0f5c30;
+  --accent:#3ddc6f;--accent2:#7dff9e;--yellow:#d9e84d;
+  --green:#3ddc6f;--brown:#a67c52;--blue:#4fc3f7;
+  --text:#eafff0;--sub:#5a9a72;
+  --glow1:#3ddc6f55;--glow2:#7dff9e33;
+  --radius:16px;--radius-sm:10px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+  font-family:'Trebuchet MS',Verdana,sans-serif;
+  background:radial-gradient(circle at 50% 0%,#0a3018,var(--bg) 70%);
+  min-height:100vh;color:var(--text);overflow-x:hidden;
+}
+.wrap{max-width:480px;margin:0 auto;padding:.8rem .7rem 3rem;position:relative;z-index:1;}
+header{text-align:center;padding:.8rem 0 .4rem;}
+header h1{font-size:1.3rem;color:var(--accent2);text-shadow:0 0 18px var(--glow1);letter-spacing:1px;}
+header p{font-size:.62rem;color:var(--sub);margin-top:.2rem;letter-spacing:1px;}
+
+.chips{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.4rem;margin:.8rem 0;}
+.chip{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.5rem .3rem;text-align:center;}
+.chip .cv{font-size:.95rem;font-weight:700;color:var(--accent2);}
+.chip .cl{font-size:.52rem;color:var(--sub);letter-spacing:1px;margin-top:.1rem;}
+
+.pbar{position:relative;background:var(--card);border:2px solid var(--border);border-radius:14px;height:38px;margin:.6rem 0;overflow:hidden;display:flex;align-items:center;}
+.pbg{position:absolute;left:0;top:0;height:100%;background:linear-gradient(90deg,#0f5c30,#3ddc6f);transition:width .3s;}
+.ptxt{position:relative;z-index:2;flex:1;padding-left:.6rem;font-size:.6rem;color:#cfffe0;}
+.pstars{position:relative;z-index:2;font-size:.6rem;color:var(--yellow);margin-right:.4rem;}
+.pbtn{position:relative;z-index:2;font-family:inherit;font-size:.62rem;padding:.35rem .7rem;margin-right:.3rem;background:linear-gradient(135deg,#0f5c30,#3ddc6f);color:#022;border:none;border-radius:8px;cursor:pointer;font-weight:700;}
+.pbtn:disabled{opacity:.4;cursor:not-allowed;}
+
+#seasonalBanner{display:flex;align-items:center;gap:.4rem;background:#05200f;border:2px solid #1a5c34;border-radius:10px;padding:.35rem .6rem;margin:.3rem 0;font-size:.6rem;transition:.3s;}
+
+.clickzone{display:flex;flex-direction:column;align-items:center;margin:1rem 0;}
+.bigbtn{
+  width:170px;height:170px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#8dffb0,#3ddc6f 55%,#0f5c30 100%);
+  border:4px solid #2a8a4f;color:#04220f;
+  box-shadow:0 0 40px var(--glow1),0 8px 0 #0a3018;
+  cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  font-family:inherit;user-select:none;transition:transform .08s;position:relative;
+  animation:btnPulse 2.6s ease-in-out infinite;
+}
+.bigbtn::before{
+  content:'';position:absolute;inset:-12px;border-radius:50%;
+  border:2px dashed #3ddc6f88;animation:ringSpin 14s linear infinite;
+}
+@keyframes btnPulse{0%,100%{box-shadow:0 0 40px var(--glow1),0 8px 0 #0a3018;}50%{box-shadow:0 0 60px var(--glow2),0 8px 0 #0a3018;}}
+@keyframes ringSpin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
+.bigbtn:active{transform:scale(.94);}
+.bigbtn .be{font-size:3rem;}
+.bigbtn .bl{font-size:1rem;font-weight:800;letter-spacing:1px;margin-top:.1rem;}
+.bigbtn .bpc{font-size:.6rem;color:#0a3018;margin-top:.1rem;}
+.cpsLine{font-size:.62rem;color:var(--sub);margin-top:.6rem;text-align:center;}
+
+.tabs{display:flex;gap:.3rem;overflow-x:auto;margin:.8rem 0 .5rem;padding-bottom:.2rem;}
+.tab{flex:0 0 auto;font-family:inherit;font-size:.6rem;padding:.4rem .65rem;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--sub);cursor:pointer;white-space:nowrap;}
+.tab.on{background:linear-gradient(135deg,#0f5c30,#3ddc6f);color:#04220f;font-weight:700;}
+
+.tpanel{display:none;}
+.tpanel.on{display:block;}
+.stitle{font-size:.78rem;color:var(--accent2);text-align:center;margin-bottom:.6rem;letter-spacing:1px;}
+
+.ucard{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.55rem .65rem;margin-bottom:.4rem;display:flex;align-items:center;gap:.55rem;cursor:pointer;}
+.ucard.afford{border-color:var(--accent);box-shadow:0 0 10px var(--glow2);}
+.ucard.owned{opacity:.45;cursor:default;}
+.ucard .ui{font-size:1.4rem;}
+.ucard .un{flex:1;}
+.ucard .un .t{font-size:.68rem;font-weight:700;color:var(--text);}
+.ucard .un .d{font-size:.55rem;color:var(--sub);}
+.ucard .uc{font-size:.62rem;color:var(--yellow);font-weight:700;}
+
+.mscard{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.5rem .6rem;margin-bottom:.4rem;position:relative;overflow:hidden;}
+.mscard.done{border-color:var(--accent);}
+.msfill{position:absolute;left:0;top:0;bottom:0;background:#1a5c34;z-index:0;transition:width .3s;}
+.msrow{position:relative;z-index:1;display:flex;align-items:center;gap:.5rem;}
+.msrow .mi{font-size:1.2rem;}
+.msrow .mt{flex:1;font-size:.62rem;}
+.msrow .mr{font-size:.56rem;color:var(--yellow);}
+
+.toast{position:fixed;top:14px;left:50%;transform:translateX(-50%) translateY(-60px);background:#0a3018;border:2px solid var(--accent);border-radius:10px;padding:.5rem 1rem;font-size:.68rem;z-index:999;opacity:0;transition:.3s;max-width:90%;text-align:center;}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
+.toast.red{border-color:#ff5544;color:#ffaaa0;}
+.toast.green{border-color:#3ddc6f;color:#cfffe0;}
+.toast.gold{border-color:#d9e84d;color:#fff7c0;}
+.toast.rainbow{border-color:#7dff9e;color:#fff;}
+
+.cfx{position:fixed;font-weight:800;pointer-events:none;animation:cfxUp 1s ease-out forwards;z-index:500;}
+@keyframes cfxUp{0%{opacity:1;transform:translateY(0);}100%{opacity:0;transform:translateY(-60px);}}
+@keyframes trophyFloat{0%,100%{transform:translateY(0) rotate(-8deg);}50%{transform:translateY(-6px) rotate(8deg);}}
+@keyframes cardShake{0%,100%{transform:translateX(0);}25%{transform:translateX(-4px);}75%{transform:translateX(4px);}}
+
+footer{text-align:center;font-size:.5rem;color:#2f6b48;margin-top:1.4rem;}
+</style>
+</head>
+<body>
+<canvas id="wpCanvas" style="position:fixed;inset:0;z-index:0;pointer-events:none;"></canvas>
+
+<div class="wrap">
+<header>
+  <h1>🌱 CLICKER MASTER 2: NATUREZA</h1>
+  <p>CUIDE DA NATUREZA, UM CLIQUE POR VEZ</p>
+</header>
+
+<div class="chips">
+  <div class="chip"><div class="cv" id="sScore">0</div><div class="cl">PONTOS</div></div>
+  <div class="chip"><div class="cv" id="sCps">0</div><div class="cl">PTS/SEG</div></div>
+  <div class="chip"><div class="cv" id="sClk">1</div><div class="cl">PTS/CLIQUE</div></div>
+</div>
+
+<div class="pbar">
+  <div class="pbg" id="pFill" style="width:0%"></div>
+  <div class="ptxt" id="pTxt">Ganhe pontos para reflorestar</div>
+  <div class="pstars" id="pStars">0 🍃</div>
+  <button class="pbtn" id="btnPres" onclick="doPrestige()" disabled>🍃 REFLORESTAR</button>
+</div>
+
+<div id="seasonalBanner"><span>⏳</span><span style="flex:1;color:#5a9a72;">Carregando eventos...</span></div>
+<div id="weatherWidget" style="text-align:center;font-size:.6rem;color:var(--sub);margin:.2rem 0 .4rem;">☀️ Carregando clima...</div>
+<div style="display:flex;align-items:center;gap:.5rem;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:.3rem .6rem;margin-bottom:.5rem;font-size:.6rem;">
+  <span>🔊</span>
+  <input id="volSlider" type="range" min="0" max="100" value="70" oninput="setVolume(this.value/100)" style="flex:1;accent-color:var(--accent);"/>
+  <span id="volLabel" style="color:var(--yellow);min-width:32px;text-align:right;">70%</span>
+</div>
+
+<div class="clickzone">
+  <button class="bigbtn" id="bigBtn" onclick="doClick(event)">
+    <span class="be" id="bE">🌿</span>
+    <span class="bl">CUIDAR!</span>
+    <span class="bpc" id="bpc">+1</span>
+  </button>
+  <div class="cpsLine" id="cpsLine">+1/clique</div>
+</div>
+
+<div class="tabs">
+  <button class="tab on" onclick="showTab('boosts',this)" id="t-boosts">🌳 BOOSTS</button>
+  <button class="tab" onclick="showTab('pres',this)" id="t-pres">🍃 REFLORESTAR</button>
+  <button class="tab" onclick="showTab('daily',this)" id="t-daily">📅 DIÁRIAS</button>
+  <button class="tab" onclick="showTab('ms',this)" id="t-ms">🏆 CONQUISTAS</button>
+  <button class="tab" onclick="showTab('rank',this)" id="t-rank">🌍 RANKING</button>
+  <button class="tab" onclick="showTab('friends',this)" id="t-friends">👥 AMIGOS</button>
+  <button class="tab" onclick="showTab('modes',this)" id="t-modes">🎭 MODOS</button>
+  <button class="tab" onclick="showTab('skins',this)" id="t-skins">🎨 SKINS</button>
+  <button class="tab" onclick="showTab('trade',this)" id="t-trade">🔄 TROCAS</button>
+  <button class="tab" onclick="showTab('seeds',this)" id="t-seeds">🌱 SEMENTES</button>
+</div>
+
+<div class="tpanel on" id="tab-boosts">
+  <div class="stitle">🌳 BOOSTS DA NATUREZA</div>
+  <div id="boostsList"></div>
+</div>
+
+<div class="tpanel" id="tab-pres">
+  <div class="stitle">🍃 REFLORESTAR</div>
+  <div style="font-size:.6rem;color:var(--sub);text-align:center;margin-bottom:.7rem;line-height:1.6;">Reflorestar reseta seus pontos e boosts, mas dá 🍃 permanentes que multiplicam tudo pra sempre. Cada 🍃 vale +10% de multiplicador global.</div>
+  <div id="presInfo" style="text-align:center;font-size:.65rem;color:var(--accent2);margin-bottom:.6rem;"></div>
+</div>
+
+<div class="tpanel" id="tab-daily">
+  <div class="stitle">📅 MISSÕES DIÁRIAS</div>
+  <div style="text-align:center;font-size:.52rem;color:var(--sub);margin-bottom:.5rem;">Renova todo dia à meia-noite ⏰</div>
+  <div id="dailyTimer" style="text-align:center;font-size:.65rem;color:var(--yellow);margin-bottom:.6rem;font-weight:700;"></div>
+  <div id="dailyList"></div>
+</div>
+
+<div class="tpanel" id="tab-ms">
+  <div class="stitle">🏆 CONQUISTAS</div>
+  <div id="msList"></div>
+</div>
+
+<div class="tpanel" id="tab-rank">
+  <div class="stitle">🌍 RANKING GLOBAL</div>
+  <div id="regBox" style="display:none;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:.7rem;margin-bottom:.7rem;text-align:center;">
+    <div style="font-size:.6rem;color:var(--sub);margin-bottom:.5rem;">Coloque seu nome pra aparecer no ranking:</div>
+    <input id="regNameInput" placeholder="Seu nome" style="width:70%;padding:.4rem;border-radius:8px;border:1px solid var(--border);background:#04220f;color:#fff;font-family:inherit;font-size:.65rem;margin-bottom:.4rem;"/><br>
+    <button onclick="registerPlayerName()" style="font-family:inherit;font-size:.65rem;padding:.4rem .9rem;background:linear-gradient(135deg,#0f5c30,#3ddc6f);color:#04220f;border:none;border-radius:8px;cursor:pointer;">SALVAR NOME</button>
+  </div>
+  <div style="text-align:center;margin-bottom:.6rem;">
+    <button onclick="loadGlobalTop10()" style="font-family:inherit;font-size:.62rem;padding:.4rem .9rem;background:linear-gradient(135deg,#0f5c30,#3ddc6f);color:#04220f;border:none;border-radius:8px;cursor:pointer;">🔄 ATUALIZAR RANKING</button>
+  </div>
+  <div id="globalTop10List"><div style="text-align:center;font-size:.5rem;color:var(--sub);">Clique em atualizar pra ver os 10 melhores!</div></div>
+</div>
+
+<div class="tpanel" id="tab-friends">
+  <div class="stitle">👥 AMIGOS</div>
+  <div style="display:flex;gap:.4rem;margin-bottom:.7rem;">
+    <input id="friendAddInput" placeholder="Nome do amigo" style="flex:1;padding:.4rem;border-radius:8px;border:1px solid var(--border);background:#04220f;color:#fff;font-family:inherit;font-size:.62rem;"/>
+    <button onclick="addFriend()" style="font-family:inherit;font-size:.62rem;padding:.4rem .7rem;background:linear-gradient(135deg,#0f5c30,#3ddc6f);color:#04220f;border:none;border-radius:8px;cursor:pointer;">+ ADD</button>
+  </div>
+  <div id="friendsList"><div style="text-align:center;font-size:.5rem;color:var(--sub);">Adicione um amigo pra ver o ranking entre vocês!</div></div>
+</div>
+
+<div class="tpanel" id="tab-modes">
+  <div class="stitle">🎭 MODOS</div>
+  <div style="font-size:.55rem;color:var(--sub);text-align:center;margin-bottom:.7rem;">Ative um modo pra mudar o visual e ganhar um bônus enquanto estiver ativo!</div>
+  <div id="modesList"></div>
+</div>
+
+<div class="tpanel" id="tab-skins">
+  <div class="stitle">🎨 SKINS DO BOTÃO</div>
+  <div style="font-size:.55rem;color:var(--sub);text-align:center;margin-bottom:.7rem;">Desbloqueie acumulando pontos e clique pra trocar o visual do botão principal!</div>
+  <div id="skinsList"></div>
+</div>
+
+<div class="tpanel" id="tab-trade">
+  <div class="stitle">🔄 MODO DE TROCA</div>
+
+  <div style="font-size:.65rem;color:var(--accent2);margin-bottom:.4rem;">😀 SEU AVATAR</div>
+  <div style="font-size:.5rem;color:var(--sub);margin-bottom:.5rem;">Escolha como você aparece no ranking e nos amigos</div>
+  <div id="avatarList" style="display:grid;grid-template-columns:repeat(6,1fr);gap:.3rem;margin-bottom:1rem;"></div>
+
+  <div style="font-size:.65rem;color:var(--accent2);margin-bottom:.4rem;">🏪 LOJA DE TROCAS</div>
+  <div style="font-size:.5rem;color:var(--sub);margin-bottom:.5rem;">Troque pontos por bônus na hora</div>
+  <div id="tradeShopList"></div>
+
+  <div style="font-size:.65rem;color:var(--accent2);margin:1rem 0 .4rem;">🤝 TROCAR COM UM AMIGO</div>
+  <div style="font-size:.5rem;color:var(--sub);margin-bottom:.5rem;">Dê 2.000 pontos pra um amigo e receba 3.000 de volta na hora (1x por dia)</div>
+  <div id="tradeFriendList"></div>
+</div>
+
+<div class="tpanel" id="tab-seeds">
+  <div class="stitle">🌱 LOJA DE SEMENTES</div>
+  <div style="font-size:.55rem;color:var(--sub);text-align:center;margin-bottom:.7rem;line-height:1.6;">Compre sementes, plante no jardim, espere crescer e colha pontos! Sementes mais raras custam mais, demoram mais pra crescer, mas dão recompensas bem maiores.</div>
+
+  <div style="font-size:.65rem;color:var(--accent2);margin-bottom:.4rem;">🛒 COMPRAR SEMENTES</div>
+  <div id="seedShopList"></div>
+
+  <div style="font-size:.65rem;color:var(--accent2);margin:1rem 0 .4rem;">🌾 SEU JARDIM</div>
+  <div id="gardenGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;"></div>
+
+  <div style="font-size:.65rem;color:var(--accent2);margin:1.2rem 0 .4rem;">✨ LOJA ESPECIAL</div>
+  <div style="font-size:.5rem;color:var(--sub);margin-bottom:.5rem;">Itens únicos: skins exclusivas, um robô que ajuda a clicar, e um relógio que acelera o tempo!</div>
+  <div id="specialShopList"></div>
+</div>
+
+<div style="margin-top:1.4rem;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:.9rem;font-size:.58rem;color:#7cb893;text-align:center;line-height:1.9;">
+  <div style="color:var(--accent2);font-size:.7rem;margin-bottom:.4rem;letter-spacing:1px;">✨ CRÉDITOS ✨</div>
+  🌱 <strong>Clicker Master 2: Natureza</strong><br>
+  Direção e Engenharia da Natureza: <strong style="color:#cfe;">Jojo</strong><br>
+  Produção: <strong style="color:#cfe;">Willian</strong><br>
+  Som e Efeitos: Web Audio, todo natural 🔊<br>
+  Assistente Virtual: seu guia da Terra 🤖<br><br>
+  💚 Obrigado por cuidar da natureza com a gente!
+</div>
+<footer>🌱 Clicker Master 2: Natureza — feito por Jojo</footer>
+</div>
+
+<div class="toast" id="toast"></div>
+<button onclick="openAssistant()" style="position:fixed;bottom:14px;right:14px;z-index:1400;width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg,#0f5c30,#3ddc6f);border:2px solid #2a8a4f;font-size:1.4rem;cursor:pointer;box-shadow:0 0 16px var(--glow1);">🤖</button>
+<button onclick="openDevTools()" style="position:fixed;bottom:14px;left:14px;z-index:1400;width:40px;height:40px;border-radius:50%;background:#1a1a1a;border:1px solid #444;font-size:1.1rem;cursor:pointer;color:#888;">🛠️</button>
+
+<script>
+// ══════════════════════════════════════════════════════
+// FIREBASE (ranking global + amigos)
+// ══════════════════════════════════════════════════════
+const firebaseConfig={
+  apiKey:"AIzaSyCqAPk0djW-yWoJcM5mAYnPtQGhKErcyzw",
+  authDomain:"clickermasterjojo.firebaseapp.com",
+  projectId:"clickermasterjojo",
+  storageBucket:"clickermasterjojo.firebasestorage.app",
+  messagingSenderId:"368256146757",
+  appId:"1:368256146757:web:787aefa86c25c0b140b22c"
+};
+let db=null;
+try{firebase.initializeApp(firebaseConfig);db=firebase.firestore();}catch(e){console.error('Firebase erro:',e);}
+let playerName=localStorage.getItem('cmnPlayerName')||'';
+let playerId=localStorage.getItem('cmnPlayerId')||('p_'+Date.now()+'_'+Math.random().toString(36).slice(2,8));
+localStorage.setItem('cmnPlayerId',playerId);
+
+// ══════════════════════════════════════════════════════
+// ESTADO DO JOGO
+// ══════════════════════════════════════════════════════
+let score=0,totalClicks=0,totalEarned=0;
+let clickPower=1,autoPerSec=0,globalMult=1;
+let prestigeCount=0,prestigeStars=0;
+const owned=new Set();
+let dailyScoreEarned=0,dailyBuys=0,maxComboEver=0;
+let comboCount=0,lastClick=0;
+
+const fmt=n=>{if(n>=1e21)return(n/1e21).toFixed(2)+'Sx';if(n>=1e18)return(n/1e18).toFixed(2)+'Qi';if(n>=1e15)return(n/1e15).toFixed(2)+'Qa';if(n>=1e12)return(n/1e12).toFixed(2)+'T';if(n>=1e9)return(n/1e9).toFixed(2)+'B';if(n>=1e6)return(n/1e6).toFixed(2)+'M';if(n>=1e3)return(n/1e3).toFixed(1)+'K';return Math.floor(n).toString();};
+const gm=()=>globalMult*(1+prestigeStars*0.1);
+
+function toast(msg,type=''){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className='toast show'+(type?' '+type:'');
+  clearTimeout(window._toastT);
+  window._toastT=setTimeout(()=>t.className='toast',2200);
+}
+function fx(ev,t,color){
+  const el=document.createElement('div');el.className='cfx';
+  el.textContent=t;el.style.cssText=`left:${ev.clientX-16}px;top:${ev.clientY-10}px;color:${color};font-size:.8rem;`;
+  document.body.appendChild(el);setTimeout(()=>el.remove(),1000);
+}
+function showTab(name,btn){
+  document.querySelectorAll('.tpanel').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('on'));
+  document.getElementById('tab-'+name).classList.add('on');
+  if(btn)btn.classList.add('on');
+  sfx('tab');
+  if(name==='pres')renderPres();
+  if(name==='rank'){loadGlobalTop10();document.getElementById('regBox').style.display=playerName?'none':'block';}
+  if(name==='friends')renderFriendsList();
+  if(name==='modes')renderModesList();
+  if(name==='skins')renderSkinsList();
+  if(name==='trade'){renderAvatarList();renderTradeShop();renderTradeFriendList();}
+  if(name==='seeds'){renderSeedShop();renderGarden();renderSpecialShop();}
+}
+
+// ══════════════════════════════════════════════════════
+// BOOSTS DA NATUREZA (upgrades)
+// ══════════════════════════════════════════════════════
+const BOOSTS=[
+  {id:'b1', name:'SEMENTE',         icon:'🌱',desc:'+1 ponto por clique',     cost:15,            eff:()=>{clickPower+=1;}},
+  {id:'b2', name:'REGADOR',         icon:'💧',desc:'+1 ponto por segundo',    cost:50,            eff:()=>{autoPerSec+=1;}},
+  {id:'b3', name:'VASINHO',         icon:'🪴',desc:'+3 pontos por clique',    cost:120,           eff:()=>{clickPower+=3;}},
+  {id:'b4', name:'ABELHA',          icon:'🐝',desc:'+5 pontos por segundo',   cost:300,           eff:()=>{autoPerSec+=5;}},
+  {id:'b5', name:'CHUVA',           icon:'🌧️',desc:'+10 pontos por clique',  cost:700,           eff:()=>{clickPower+=10;}},
+  {id:'b6', name:'BORBOLETA',       icon:'🦋',desc:'+15 pontos por segundo',  cost:1500,          eff:()=>{autoPerSec+=15;}},
+  {id:'b7', name:'GIRASSOL',        icon:'🌻',desc:'+25 pontos por clique',   cost:3500,          eff:()=>{clickPower+=25;}},
+  {id:'b8', name:'SOL',             icon:'☀️',desc:'Multiplicador global +1', cost:6000,          eff:()=>{globalMult+=1;}},
+  {id:'b9', name:'PASSARINHO',      icon:'🐦',desc:'+50 pontos por segundo',  cost:9000,          eff:()=>{autoPerSec+=50;}},
+  {id:'b10',name:'COGUMELO MÁGICO', icon:'🍄',desc:'+80 pontos por clique',   cost:15000,         eff:()=>{clickPower+=80;}},
+  {id:'b11',name:'ÁRVORE',          icon:'🌳',desc:'+150 pontos por segundo', cost:28000,         eff:()=>{autoPerSec+=150;}},
+  {id:'b12',name:'VEADO',           icon:'🦌',desc:'+200 pontos por clique',  cost:45000,         eff:()=>{clickPower+=200;}},
+  {id:'b13',name:'RAIO DE LUZ',     icon:'🌈',desc:'Multiplicador global +2', cost:70000,         eff:()=>{globalMult+=2;}},
+  {id:'b14',name:'RIACHO',          icon:'🏞️',desc:'+400 pontos por segundo',cost:110000,        eff:()=>{autoPerSec+=400;}},
+  {id:'b15',name:'RAPOSA',          icon:'🦊',desc:'+600 pontos por clique',  cost:180000,        eff:()=>{clickPower+=600;}},
+  {id:'b16',name:'COLMEIA GIGANTE', icon:'🍯',desc:'+1.200 pontos por seg.',  cost:300000,        eff:()=>{autoPerSec+=1200;}},
+  {id:'b17',name:'FLORESTA',        icon:'🌲',desc:'Multiplicador global ×2',cost:500000,        eff:()=>{globalMult*=2;}},
+  {id:'b18',name:'CACHOEIRA',       icon:'💦',desc:'+3.000 pontos por seg.',  cost:900000,        eff:()=>{autoPerSec+=3000;}},
+  {id:'b19',name:'TARTARUGA SÁBIA', icon:'🐢',desc:'+5.000 pontos/clique',    cost:1500000,       eff:()=>{clickPower+=5000;}},
+  {id:'b20',name:'TEMPESTADE BOA',  icon:'⛈️',desc:'+10.000 pontos por seg.', cost:2800000,       eff:()=>{autoPerSec+=10000;}},
+  {id:'b21',name:'BALEIA',          icon:'🐳',desc:'+20.000 pontos/clique',   cost:5000000,       eff:()=>{clickPower+=20000;}},
+  {id:'b22',name:'RECIFE DE CORAL', icon:'🪸',desc:'Multiplicador global ×3',cost:9000000,        eff:()=>{globalMult*=3;}},
+  {id:'b23',name:'OCEANO',          icon:'🌊',desc:'+50.000 pontos por seg.', cost:16000000,      eff:()=>{autoPerSec+=50000;}},
+  {id:'b24',name:'MONTANHA VERDE',  icon:'⛰️',desc:'+120.000 pontos/clique', cost:30000000,      eff:()=>{clickPower+=120000;}},
+  {id:'b25',name:'ARCO-ÍRIS ETERNO',icon:'🌈',desc:'Multiplicador global ×5',cost:60000000,      eff:()=>{globalMult*=5;}},
+  {id:'b26',name:'PLANETA SAUDÁVEL',icon:'🌍',desc:'Multiplicador global ×10',cost:150000000,    eff:()=>{globalMult*=10;}},
+  {id:'b27',name:'GEISER',          icon:'♨️',desc:'+300.000 pontos/seg',     cost:280000000,     eff:()=>{autoPerSec+=300000;}},
+  {id:'b28',name:'ÁGUIA',           icon:'🦅',desc:'+500.000 pontos/clique',  cost:500000000,     eff:()=>{clickPower+=500000;}},
+  {id:'b29',name:'GELEIRA',         icon:'🧊',desc:'Multiplicador global ×15',cost:900000000,     eff:()=>{globalMult*=15;}},
+  {id:'b30',name:'VULCÃO ADORMECIDO',icon:'🌋',desc:'+1.5M pontos/seg',       cost:1.6e9,         eff:()=>{autoPerSec+=1500000;}},
+  {id:'b31',name:'TUBARÃO',         icon:'🦈',desc:'+3M pontos/clique',       cost:3e9,           eff:()=>{clickPower+=3000000;}},
+  {id:'b32',name:'AURORA BOREAL',   icon:'🌌',desc:'Multiplicador global ×25',cost:6e9,           eff:()=>{globalMult*=25;}},
+  {id:'b33',name:'PÂNTANO VIVO',    icon:'🐸',desc:'+8M pontos/seg',          cost:1.1e10,        eff:()=>{autoPerSec+=8000000;}},
+  {id:'b34',name:'ELEFANTE',        icon:'🐘',desc:'+15M pontos/clique',      cost:2e10,          eff:()=>{clickPower+=15000000;}},
+  {id:'b35',name:'SAVANA INFINITA', icon:'🦒',desc:'Multiplicador global ×40',cost:4e10,          eff:()=>{globalMult*=40;}},
+  {id:'b36',name:'BIODIVERSIDADE TOTAL',icon:'🌐',desc:'Multiplicador global ×100',cost:1e11,     eff:()=>{globalMult*=100;}},
+];
+// ══ GERADOR DE MAIS BOOSTS (pra ter MUITAS opções) ══
+const EXTRA_BOOST_TEMPLATES=[
+  ['🐿️','ESQUILO'],['🦔','OURIÇO'],['🦫','CASTOR'],['🦦','LONTRA'],['🐍','COBRA'],
+  ['🦎','LAGARTIXA'],['🐌','CARACOL'],['🐛','MINHOCA'],['🕷️','ARANHA'],['🦗','GRILO'],
+  ['🪲','ESCARAVELHO'],['🦂','ESCORPIÃO'],['🐢','TARTARUGUINHA'],['🐬','BOTO'],['🦭','FOCA'],
+  ['🐧','PINGUIM'],['🦩','FLAMINGO'],['🦚','PAVÃO'],['🦜','PAPAGAIO'],['🦤','DODÔ'],
+  ['🐫','CAMELO'],['🦬','BISÃO'],['🐃','BÚFALO'],['🦏','RINOCERONTE'],['🦛','HIPOPÓTAMO'],
+  ['🐅','TIGRE'],['🦁','LEÃO'],['🐆','LEOPARDO'],['🐺','LOBO'],['🦝','GUAXINIM'],
+  ['🌵','CACTO'],['🍂','FOLHA SECA'],['🌾','TRIGO'],['🪨','PEDRA VIVA'],['🪵','TRONCO'],
+  ['🔥','FOGUEIRA NATURAL'],['🌪️','REMOINHO'],['🌊','MARÉ'],['🏔️','PICO NEVADO'],['🌅','AMANHECER'],
+  ['🌄','NASCER DO SOL'],['🌠','ESTRELA CADENTE'],['🪐','SATURNO VERDE'],['🌑','LUA NOVA'],['🌗','LUA CRESCENTE'],
+  ['💫','POEIRA CÓSMICA'],['🍀','SORTE VERDE'],['🌻','CAMPO DE GIRASSOL'],['🌼','MARGARIDA'],['🪷','LÓTUS'],
+  ['🦋','ENXAME DE BORBOLETAS'],['🐝','ENXAME DE ABELHAS'],['🦅','BANDO DE ÁGUIAS'],['🐦','MIGRAÇÃO'],['🦉','COLÔNIA DE CORUJAS'],
+  ['🌳','FLORESTA ANCESTRAL'],['🏞️','VALE SAGRADO'],['🗻','MONTE SAGRADO'],['🌋','SUPERVULCÃO'],['🧊','GELEIRA ETERNA'],
+  ['🌊','TSUNAMI VERDE'],['☁️','NUVEM VIVA'],['🌈','PORTAL ARCO-ÍRIS'],['✨','MAGIA DA TERRA'],['🌍','GAIA DESPERTA'],
+];
+(function(){
+  let cost=2.5e11;
+  EXTRA_BOOST_TEMPLATES.forEach((t,i)=>{
+    const tier=Math.floor(i/EXTRA_BOOST_TEMPLATES.length*3)+1; // não usado, mantemos simples
+    const type=i%3; // 0=clique 1=auto 2=mult
+    const id='ex'+(i+1);
+    const icon=t[0],name=t[1];
+    let desc,eff;
+    if(type===0){
+      const val=Math.pow(10,6+Math.floor(i/3));
+      desc='+'+fmt(val)+' pontos/clique';
+      eff=()=>{clickPower+=val;};
+    } else if(type===1){
+      const val=Math.pow(10,6+Math.floor(i/3));
+      desc='+'+fmt(val)+' pontos/seg';
+      eff=()=>{autoPerSec+=val;};
+    } else {
+      const val=10+Math.floor(i/3)*15;
+      desc='Multiplicador global ×'+val;
+      eff=()=>{globalMult*=val;};
+    }
+    BOOSTS.push({id,name,icon,desc,cost:Math.floor(cost),eff});
+    cost*=1.85;
+  });
+})();
+// ══ SEGUNDA LEVA DE BOOSTS (mais 100!) ══
+const EXTRA_BOOST_TEMPLATES_2=[
+  ['🌒','LUA CRESCENTE'],['🌓','LUA QUARTO'],['🌔','LUA GIBOSA'],['🌕','LUA CHEIA'],['🌖','LUA MINGUANTE'],['🌗','LUA QUARTO MINGUANTE'],
+  ['🪻','LAVANDA'],['🌾','CAMPO DE TRIGO'],['🎋','BAMBU SAGRADO'],['🪹','NINHO VAZIO'],['🪺','NINHO COM OVOS'],['🐣','FILHOTE NASCENDO'],
+  ['🐤','PINTINHO'],['🐥','PINTINHO DE FRENTE'],['🦃','PERU SELVAGEM'],['🦅','FALCÃO'],['🦢','CISNE NEGRO'],['🦩','FLAMINGO ROSA'],
+  ['🐿️','ESQUILO VOADOR'],['🦔','OURIÇO ESPINHOSO'],['🦇','MORCEGO'],['🐹','HAMSTER'],['🐭','RATINHO'],['🐁','RATO DO CAMPO'],
+  ['🐰','COELHO'],['🐇','LEBRE'],['🦘','CANGURU'],['🦨','GAMBÁ'],['🦡','TEXUGO'],['🦥','BICHO-PREGUIÇA'],
+  ['🐊','JACARÉ'],['🐲','DRAGÃOZINHO VERDE'],['🐉','DRAGÃO DA NATUREZA'],['🦕','DINOSSAURO HERBÍVORO'],['🦖','DINOSSAURO CARNÍVORO'],['🐳','BALEIA AZUL'],
+  ['🦈','TUBARÃO'],['🐙','POLVO'],['🦑','LULA'],['🦐','CAMARÃO'],['🦞','LAGOSTA'],['🦀','CARANGUEJO'],
+  ['🐡','PEIXE-BALÃO'],['🐠','PEIXE TROPICAL'],['🐟','CARDUME'],['🦈','TUBARÃO BRANCO'],['🐬','GOLFINHO ALEGRE'],['🦦','LONTRA BRINCALHONA'],
+  ['🌅','ALVORECER DOURADO'],['🌇','ENTARDECER'],['🌆','PÔR DO SOL NA CIDADE VERDE'],['🌃','NOITE ESTRELADA'],['🌉','PONTE SOBRE O RIO'],['🎆','FOGOS NATURAIS'],
+  ['🎇','FAÍSCA BRILHANTE'],['🧨','EXPLOSÃO DE FLORES'],['✴️','BRILHO ESTELAR'],['🔆','LUZ INTENSA'],['🔅','LUZ SUAVE'],['💥','EXPLOSÃO DE VIDA'],
+  ['🌀','REDEMOINHO VERDE'],['🌐','REDE DA VIDA'],['🪨','PEDRA ANCESTRAL'],['🪵','MADEIRA NOBRE'],['🧱','MURO DE PEDRA VERDE'],['🏕️','ACAMPAMENTO'],
+  ['⛺','TENDA NA NATUREZA'],['🛖','CABANA'],['🏘️','VILA SUSTENTÁVEL'],['🌇','HORIZONTE VERDE'],['🚜','TRATOR ECOLÓGICO'],['🌾','PLANTAÇÃO INFINITA'],
+  ['🧺','CESTA DE FRUTAS'],['🍇','UVA'],['🍈','MELÃO'],['🍉','MELANCIA'],['🍊','LARANJA'],['🍋','LIMÃO'],
+  ['🍌','BANANA'],['🍍','ABACAXI'],['🥭','MANGA'],['🍎','MAÇÃ'],['🍐','PERA'],['🍑','PÊSSEGO'],
+  ['🍒','CEREJA'],['🍓','MORANGO'],['🫐','MIRTILO'],['🥝','KIWI'],['🍅','TOMATE'],['🥥','COCO'],
+  ['🥑','ABACATE'],['🍆','BERINJELA'],['🥔','BATATA'],['🥕','CENOURA'],['🌽','MILHO'],['🌶️','PIMENTA ARDIDA'],
+];
+(function(){
+  let cost=2e15;
+  EXTRA_BOOST_TEMPLATES_2.forEach((t,i)=>{
+    const type=i%3;
+    const id='ex2_'+(i+1);
+    const icon=t[0],name=t[1];
+    let desc,eff;
+    if(type===0){
+      const val=Math.pow(10,9+Math.floor(i/3)*0.4);
+      desc='+'+fmt(val)+' pontos/clique';
+      eff=()=>{clickPower+=val;};
+    } else if(type===1){
+      const val=Math.pow(10,9+Math.floor(i/3)*0.4);
+      desc='+'+fmt(val)+' pontos/seg';
+      eff=()=>{autoPerSec+=val;};
+    } else {
+      const val=50+Math.floor(i/3)*20;
+      desc='Multiplicador global ×'+val;
+      eff=()=>{globalMult*=val;};
+    }
+    BOOSTS.push({id,name,icon,desc,cost:Math.floor(cost),eff});
+    cost*=1.7;
+  });
+})();
+function renderBoosts(){
+  const el=document.getElementById('boostsList');if(!el)return;
+  let html='';
+  BOOSTS.forEach(b=>{
+    const isOwned=owned.has(b.id);
+    const afford=!isOwned&&score>=b.cost;
+    html+=`<div class="ucard ${isOwned?'owned':''} ${afford?'afford':''}" onclick="${isOwned?'':'buyBoost(\''+b.id+'\')'}">
+      <span class="ui">${b.icon}</span>
+      <div class="un"><div class="t">${b.name}${isOwned?' ✅':''}</div><div class="d">${b.desc}</div></div>
+      <div class="uc">${isOwned?'OK':fmt(b.cost)}</div>
+    </div>`;
+  });
+  el.innerHTML=html;
+}
+function buyBoost(id){
+  const b=BOOSTS.find(x=>x.id===id);
+  if(!b||owned.has(id)||score<b.cost)return;
+  score-=b.cost;owned.add(id);dailyBuys++;
+  try{b.eff();}catch(e){}
+  sfx('buy');
+  toast(b.icon+' '+b.name+' comprado!','green');
+  updateUI();renderBoosts();
+}
+
+// ══════════════════════════════════════════════════════
+// CLIQUE
+// ══════════════════════════════════════════════════════
+function doClick(ev){
+  recordClickForAntiCheat();
+  sfx('click');
+  const now=Date.now();
+  let pts=clickPower;
+  if(now-lastClick<500){comboCount++;if(comboCount>maxComboEver)maxComboEver=comboCount;}
+  else comboCount=0;
+  lastClick=now;
+  if(comboCount>2)pts=Math.floor(pts*(1+comboCount*0.05));
+  const m=gm()*getModeClickBonus()*getWeatherMult();
+  pts=Math.floor(pts*m*tempMult);
+  score+=pts;totalClicks++;totalEarned+=pts;dailyScoreEarned+=pts;
+  if(ev)fx(ev,'+'+fmt(pts),'#bfffd0');
+  updateUI();checkMS();checkPrestige();
+}
+
+// ══════════════════════════════════════════════════════
+// REFLORESTAR (prestígio)
+// ══════════════════════════════════════════════════════
+function PREQ(){return 50000*Math.pow(6,prestigeCount);}
+function checkPrestige(){
+  const req=PREQ();
+  const btn=document.getElementById('btnPres');
+  const fill=document.getElementById('pFill');
+  const txt=document.getElementById('pTxt');
+  const pct=Math.min(100,(totalEarned/req)*100);
+  if(fill)fill.style.width=pct+'%';
+  if(txt)txt.textContent=totalEarned>=req?'Pronto pra reflorestar!':fmt(totalEarned)+' / '+fmt(req);
+  if(btn)btn.disabled=totalEarned<req;
+  const st=document.getElementById('pStars');if(st)st.textContent=prestigeStars+' 🍃';
+}
+function doPrestige(){
+  if(totalEarned<PREQ())return;
+  const gain=1+Math.floor(prestigeCount/3);
+  prestigeStars+=gain;prestigeCount++;
+  score=0;totalEarned=0;clickPower=1;autoPerSec=0;globalMult=1;
+  owned.clear();
+  sfx('prestige');
+  toast('🍃 Reflorestou! +'+gain+' 🍃 permanentes!','rainbow');
+  updateUI();renderBoosts();checkMS();checkPrestige();renderPres();
+}
+function renderPres(){
+  const el=document.getElementById('presInfo');if(!el)return;
+  el.innerHTML='Reflorestamentos: <strong>'+prestigeCount+'</strong><br>🍃 permanentes: <strong>'+prestigeStars+'</strong><br>Multiplicador do reflorestamento: <strong>×'+(1+prestigeStars*0.1).toFixed(1)+'</strong>';
+}
+
+// ══════════════════════════════════════════════════════
+// CONQUISTAS
+// ══════════════════════════════════════════════════════
+const MS=[
+  {id:'ms_clk1',  label:'👆 Primeiro cuidado',    goal:1,    clk:true, rew:'+10 pts',     bonus:()=>score+=10},
+  {id:'ms_clk2',  label:'👆 100 cliques',         goal:100,  clk:true, rew:'+500 pts',    bonus:()=>score+=500},
+  {id:'ms_clk3',  label:'👆 1.000 cliques',       goal:1000, clk:true, rew:'+5.000 pts',  bonus:()=>score+=5000},
+  {id:'ms_clk4',  label:'👆 10.000 cliques',      goal:10000,clk:true, rew:'Mult +1',     bonus:()=>globalMult+=1},
+  {id:'ms_pts1',  label:'🌱 Primeiros 1.000 pts', goal:1000, score:true,rew:'+5 clique', bonus:()=>clickPower+=5},
+  {id:'ms_pts2',  label:'🌳 100.000 pontos',      goal:100000,score:true,rew:'+50 clique',bonus:()=>clickPower+=50},
+  {id:'ms_pts3',  label:'🌍 1 milhão de pontos',  goal:1e6,  score:true,rew:'Mult +1',    bonus:()=>globalMult+=1},
+  {id:'ms_pts4',  label:'🌊 1 bilhão de pontos',  goal:1e9,  score:true,rew:'Mult ×2',    bonus:()=>globalMult*=2},
+  {id:'ms_pts5',  label:'⛰️ 1 trilhão de pontos',goal:1e12, score:true,rew:'Mult ×3',    bonus:()=>globalMult*=3},
+  {id:'ms_upg1',  label:'🌿 5 boosts comprados',  goal:5,    upg:true, rew:'+100 pts',    bonus:()=>score+=100},
+  {id:'ms_upg2',  label:'🌳 15 boosts comprados', goal:15,   upg:true, rew:'Mult +1',     bonus:()=>globalMult+=1},
+  {id:'ms_upg3',  label:'🌍 Todos os boosts',     goal:BOOSTS.length,upg:true,rew:'Mult ×2',bonus:()=>globalMult*=2},
+  {id:'ms_combo', label:'🔥 Combo x10',           goal:10,   combo:true,rew:'+1.000 pts', bonus:()=>score+=1000},
+  {id:'ms_combo2',label:'🔥 Combo x30',           goal:30,   combo:true,rew:'Mult +2',    bonus:()=>globalMult+=2},
+  {id:'ms_prs1',  label:'🍃 Primeiro reflorestamento',goal:1,prs:true,rew:'+5 🍃',       bonus:()=>prestigeStars+=5},
+  {id:'ms_prs2',  label:'🍃 5 reflorestamentos',  goal:5,    prs:true, rew:'+20 🍃',      bonus:()=>prestigeStars+=20},
+  {id:'ms_skin1', label:'🎨 Trocou de skin',      goal:1,    skin:true,rew:'+2.000 pts',  bonus:()=>score+=2000},
+  {id:'ms_gift1', label:'🎁 Mandou um presente',  goal:1,    gift:true,rew:'+1.000 pts',  bonus:()=>score+=1000},
+  {id:'ms_friend1',label:'👥 Adicionou um amigo', goal:1,    friend:true,rew:'+500 pts',  bonus:()=>score+=500},
+];
+const dMS=new Set();
+function checkMS(){
+  MS.forEach(m=>{
+    if(dMS.has(m.id))return;
+    let val=0;
+    if(m.clk)val=totalClicks;
+    else if(m.score)val=totalEarned;
+    else if(m.upg)val=owned.size;
+    else if(m.combo)val=maxComboEver;
+    else if(m.prs)val=prestigeCount;
+    else if(m.skin)val=skinChanges;
+    else if(m.gift)val=giftsSent;
+    else if(m.friend)val=getFriends().length;
+    if(val>=m.goal){
+      dMS.add(m.id);
+      try{m.bonus();}catch(e){}
+      toast('🏆 '+m.label+' — '+m.rew,'gold');
+      sfx('achievement');
+      updateUI();renderMS();
+    }
+  });
+}
+function renderMS(){
+  const el=document.getElementById('msList');if(!el)return;
+  let html='';
+  MS.forEach(m=>{
+    const done=dMS.has(m.id);
+    let val=0;
+    if(m.clk)val=totalClicks;else if(m.score)val=totalEarned;else if(m.upg)val=owned.size;else if(m.combo)val=maxComboEver;else if(m.prs)val=prestigeCount;
+    const pct=Math.min(100,Math.floor(val/m.goal*100));
+    html+=`<div class="mscard ${done?'done':''}">
+      <div class="msfill" style="width:${done?100:pct}%"></div>
+      <div class="msrow">
+        <span class="mi">${done?'✅':'🔒'}</span>
+        <span class="mt">${m.label}</span>
+        <span class="mr">${m.rew}</span>
+      </div>
+    </div>`;
+  });
+  el.innerHTML=html;
+}
+
+// ══════════════════════════════════════════════════════
+// MISSÕES DIÁRIAS
+// ══════════════════════════════════════════════════════
+const DAILY_MISSIONS_LIST=[
+  {id:'d_clk1',label:'👆 Dar 50 cliques',goal:50,type:'clicks',rew:()=>{score+=2000;},rewLabel:'+2K pts'},
+  {id:'d_clk2',label:'👆 Dar 300 cliques',goal:300,type:'clicks',rew:()=>{score+=15000;},rewLabel:'+15K pts'},
+  {id:'d_score1',label:'🌱 Ganhar 5.000 pontos',goal:5000,type:'score',rew:()=>{globalMult+=1;},rewLabel:'Mult +1'},
+  {id:'d_score2',label:'🌳 Ganhar 500.000 pontos',goal:500000,type:'score',rew:()=>{clickPower+=20;},rewLabel:'+20/clique'},
+  {id:'d_buy1',label:'🛒 Comprar 2 boosts',goal:2,type:'buys',rew:()=>{score+=8000;},rewLabel:'+8K pts'},
+  {id:'d_combo',label:'🔥 Fazer combo x8',goal:8,type:'combo',rew:()=>{score+=5000;},rewLabel:'+5K pts'},
+];
+let dailyState=JSON.parse(localStorage.getItem('cmnDaily')||'null');
+function todayKey(){const d=new Date();return d.getFullYear()+'-'+d.getMonth()+'-'+d.getDate();}
+function initDaily(){
+  const today=todayKey();
+  if(!dailyState||dailyState.date!==today){
+    const shuffled=[...DAILY_MISSIONS_LIST].sort(()=>Math.random()-.5);
+    dailyState={date:today,missions:shuffled.slice(0,3).map(m=>m.id),done:[],startClicks:totalClicks,startScore:0};
+    localStorage.setItem('cmnDaily',JSON.stringify(dailyState));
+  }
+}
+function getDailyMissions(){return (dailyState?.missions||[]).map(id=>DAILY_MISSIONS_LIST.find(m=>m.id===id)).filter(Boolean);}
+function checkDaily(){
+  getDailyMissions().forEach(m=>{
+    if(dailyState.done.includes(m.id))return;
+    let val=0;
+    if(m.type==='clicks')val=totalClicks-(dailyState.startClicks||0);
+    else if(m.type==='score')val=dailyScoreEarned;
+    else if(m.type==='buys')val=dailyBuys;
+    else if(m.type==='combo')val=maxComboEver;
+    if(val>=m.goal){
+      dailyState.done.push(m.id);
+      localStorage.setItem('cmnDaily',JSON.stringify(dailyState));
+      try{m.rew();}catch(e){}
+      toast('📅 '+m.label+' — '+m.rewLabel,'gold');
+      sfx('daily');
+      updateUI();renderDailyList();
+    }
+  });
+}
+function renderDailyList(){
+  const el=document.getElementById('dailyList');if(!el)return;
+  let html='';
+  getDailyMissions().forEach(m=>{
+    const done=dailyState.done.includes(m.id);
+    let val=0;
+    if(m.type==='clicks')val=totalClicks-(dailyState.startClicks||0);
+    else if(m.type==='score')val=dailyScoreEarned;
+    else if(m.type==='buys')val=dailyBuys;
+    else if(m.type==='combo')val=maxComboEver;
+    const pct=Math.min(100,Math.floor(val/m.goal*100));
+    html+=`<div class="mscard ${done?'done':''}">
+      <div class="msfill" style="width:${done?100:pct}%"></div>
+      <div class="msrow"><span class="mi">${done?'✅':'📅'}</span><span class="mt">${m.label}</span><span class="mr">${m.rewLabel}</span></div>
+    </div>`;
+  });
+  el.innerHTML=html||'<div style="text-align:center;font-size:.55rem;color:var(--sub);">Carregando...</div>';
+}
+function startDailyTimer(){
+  const el=document.getElementById('dailyTimer');
+  function update(){
+    const now=new Date();
+    const next=new Date(now.getFullYear(),now.getMonth(),now.getDate()+1,0,0,0);
+    const diff=next-now;
+    const h=Math.floor(diff/3600000),m=Math.floor((diff%3600000)/60000),s=Math.floor((diff%60000)/1000);
+    if(el)el.textContent='⏰ Renova em '+h+'h '+m+'m '+s+'s';
+  }
+  update();setInterval(update,1000);
+}
+
+// ══════════════════════════════════════════════════════
+// EVENTOS SAZONAIS (bônus temporário no botão)
+// ══════════════════════════════════════════════════════
+const SEASONAL_EVENTS=[
+  {name:'CHUVA DE SEMENTES', icon:'🌱',color:'#7dff9e',mult:2, dur:60},
+  {name:'VENTO FORTE',       icon:'🍃',color:'#d9e84d',mult:3, dur:45},
+  {name:'SOL FORTE',         icon:'☀️',color:'#ffaa33',mult:4, dur:30},
+  {name:'NOITE DE LUA CHEIA',icon:'🌕',color:'#aab4ff',mult:5, dur:20},
+  {name:'PRIMAVERA',         icon:'🌸',color:'#ff8fc6',mult:10,dur:10},
+];
+let tempMult=1,tempMultExp=0;
+function seasonalRandomGap(){return Math.floor((3*60+Math.random()*4*60)*1000);}
+let seasonalNextAt=Date.now()+seasonalRandomGap();
+let seasonalActive=null,seasonalEndsAt=0;
+function tickSeasonalEvents(){
+  const now=Date.now();
+  if(seasonalActive){
+    if(now>=seasonalEndsAt){seasonalActive=null;tempMult=1;seasonalNextAt=now+seasonalRandomGap();}
+  } else if(now>=seasonalNextAt){
+    const ev=SEASONAL_EVENTS[Math.floor(Math.random()*SEASONAL_EVENTS.length)];
+    seasonalActive=ev;seasonalEndsAt=now+ev.dur*1000;tempMult=ev.mult;
+    toast(ev.icon+' EVENTO: '+ev.name+'! Botão ×'+ev.mult+' por '+ev.dur+'s!','rainbow');
+  }
+  renderSeasonalBanner();
+}
+function renderSeasonalBanner(){
+  const b=document.getElementById('seasonalBanner');if(!b)return;
+  const now=Date.now();
+  if(seasonalActive){
+    const left=Math.max(0,Math.ceil((seasonalEndsAt-now)/1000));
+    b.style.borderColor=seasonalActive.color;
+    b.innerHTML=`<span>${seasonalActive.icon}</span><span style="flex:1;color:${seasonalActive.color};font-weight:700;">${seasonalActive.name} ATIVO! ×${seasonalActive.mult}</span><span style="color:${seasonalActive.color};">${left}s</span>`;
+  } else {
+    const left=Math.max(0,Math.ceil((seasonalNextAt-now)/1000));
+    const m=Math.floor(left/60),s=String(left%60).padStart(2,'0');
+    b.style.borderColor='#1a5c34';
+    b.innerHTML=`<span>⏳</span><span style="flex:1;color:#5a9a72;">Próximo evento em</span><span style="color:var(--yellow);">${m}m ${s}s</span>`;
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// ANTI-AUTOCLICKER
+// ══════════════════════════════════════════════════════
+let clickTimestampsAC=[];
+let banCountAC=parseInt(localStorage.getItem('cmnBanCount')||'0',10);
+let suspiciousStreakStart=null;
+function requiredAutoclickSeconds(){if(banCountAC<=0)return 5;if(banCountAC===1)return 15;return 20;}
+function recordClickForAntiCheat(){
+  const now=Date.now();
+  if(document.getElementById('banScreenOv'))return;
+  clickTimestampsAC.push(now);
+  if(clickTimestampsAC.length>6)clickTimestampsAC.shift();
+  if(clickTimestampsAC.length<6){suspiciousStreakStart=null;return;}
+  const intervals=[];
+  for(let i=1;i<clickTimestampsAC.length;i++)intervals.push(clickTimestampsAC[i]-clickTimestampsAC[i-1]);
+  const avg=intervals.reduce((a,b)=>a+b,0)/intervals.length;
+  const variance=intervals.reduce((a,b)=>a+(b-avg)*(b-avg),0)/intervals.length;
+  const stddev=Math.sqrt(variance);
+  const looksLikeBot=avg<70&&stddev<18;
+  if(!looksLikeBot){suspiciousStreakStart=null;return;}
+  if(!suspiciousStreakStart)suspiciousStreakStart=clickTimestampsAC[0];
+  const elapsedSec=(now-suspiciousStreakStart)/1000;
+  if(elapsedSec>=requiredAutoclickSeconds()){
+    suspiciousStreakStart=null;clickTimestampsAC=[];
+    triggerBanSequence();
+  }
+}
+const BAN_LEVELS=[
+  null,
+  {duration:60,  title:'🚫 BANIDO POR USAR AUTOCLICKER', sub:'Isso é contra as regras do jogo. Seus pontos foram reduzidos.',penalty:.5, shake:false},
+  {duration:300, title:'☠️ BANIDO DE NOVO?!',             sub:'Você já tinha sido avisado. Isso agora é MUITO mais sério.',  penalty:.25,shake:true},
+  {duration:3600,title:'💀 BANIDO PELA 3ª VEZ 💀',        sub:'ISSO PRECISA PARAR AGORA. ÚLTIMO AVISO SÉRIO DE VERDADE.',     penalty:.1, shake:true},
+];
+function triggerBanSequence(){
+  banCountAC++;localStorage.setItem('cmnBanCount',String(banCountAC));
+  const level=Math.min(banCountAC,3);
+  localStorage.setItem('cmnBanUntil',String(Date.now()+BAN_LEVELS[level].duration*1000));
+  localStorage.setItem('cmnBanLevel',String(level));
+  showBanScreen(BAN_LEVELS[level],false);
+}
+function resumeBanIfActive(){
+  const until=parseInt(localStorage.getItem('cmnBanUntil')||'0',10);
+  if(!until)return;
+  if(until>Date.now()){
+    const level=Math.min(Math.max(parseInt(localStorage.getItem('cmnBanLevel')||'1',10),1),3);
+    const remaining=Math.ceil((until-Date.now())/1000);
+    showBanScreen({...BAN_LEVELS[level],duration:remaining},false);
+  } else {
+    localStorage.removeItem('cmnBanUntil');localStorage.removeItem('cmnBanLevel');
+  }
+}
+function showBanScreen(cfg,isPreview){
+  sfx('ban');
+  const ov=document.createElement('div');
+  ov.id='banScreenOv';
+  ov.style.cssText='position:fixed;inset:0;z-index:2000;background:#000;display:flex;align-items:center;justify-content:center;flex-direction:column;';
+  ov.innerHTML=`<div style="text-align:center;max-width:340px;padding:1rem;${cfg.shake?'animation:cardShake .15s ease-in-out infinite;':''}">
+    <div style="font-size:3rem;margin-bottom:.6rem;">⛔</div>
+    <div style="font-family:inherit;font-size:1.1rem;color:#ff4444;letter-spacing:2px;margin-bottom:.6rem;">${cfg.title}</div>
+    <div style="font-size:.62rem;color:#ff9999;margin-bottom:1.2rem;line-height:1.6;">${cfg.sub}</div>
+    <div id="banCountdown" style="font-size:1rem;color:#888;font-weight:700;"></div>
+  </div>`;
+  document.body.appendChild(ov);
+  function fmtBanTime(s){if(s<=0)return'';if(s>=3600)return Math.floor(s/3600)+'h '+Math.floor((s%3600)/60)+'m '+(s%60)+'s...';if(s>=60)return Math.floor(s/60)+'m '+(s%60)+'s...';return s+'s...';}
+  let left=cfg.duration;
+  const cd=document.getElementById('banCountdown');
+  if(cd)cd.textContent=fmtBanTime(left);
+  const iv=setInterval(()=>{
+    left--;if(cd)cd.textContent=fmtBanTime(left);
+    if(left<=0){clearInterval(iv);
+      score=Math.floor(score*cfg.penalty);updateUI();
+      localStorage.removeItem('cmnBanUntil');localStorage.removeItem('cmnBanLevel');
+      toast('⚠️ Pontos reduzidos por usar autoclicker!','red');
+      document.getElementById('banScreenOv')?.remove();
+    }
+  },1000);
+}
+
+// ══════════════════════════════════════════════════════
+// 🌍 RANKING GLOBAL
+// ══════════════════════════════════════════════════════
+function registerPlayerName(){
+  const inp=document.getElementById('regNameInput');
+  const name=inp?.value.trim();
+  if(!name){toast('Coloca um nome!','red');return;}
+  playerName=name;localStorage.setItem('cmnPlayerName',playerName);
+  document.getElementById('regBox').style.display='none';
+  toast('🌱 Nome salvo! Bem-vindo, '+name,'green');
+  saveScoreToFirebase();
+}
+async function saveScoreToFirebase(){
+  if(!db||!playerName)return;
+  try{
+    await db.collection('jogadoresNatureza').doc(playerId).set({
+      nome:playerName,id:playerId,score:Math.floor(score),
+      totalCliques:totalClicks,prestigios:prestigeCount,avatar:playerAvatar,
+      updatedAt:firebase.firestore.FieldValue.serverTimestamp()
+    });
+  }catch(e){}
+}
+setInterval(saveScoreToFirebase,60000);
+async function loadGlobalTop10(){
+  const el=document.getElementById('globalTop10List');if(!el)return;
+  if(!db){el.innerHTML='<div style="text-align:center;font-size:.5rem;color:#ff6666;">Ranking indisponível agora.</div>';return;}
+  el.innerHTML='<div style="text-align:center;font-size:.5rem;color:var(--sub);">Carregando... 🔄</div>';
+  try{
+    const snap=await db.collection('jogadoresNatureza').orderBy('score','desc').limit(10).get();
+    if(snap.empty){el.innerHTML='<div style="text-align:center;font-size:.5rem;color:var(--sub);">Ninguém no ranking ainda!</div>';return;}
+    const medals=['🥇','🥈','🥉'];let html='';let pos=0;
+    snap.forEach(doc=>{
+      const d=doc.data();const isMe=playerName&&d.nome===playerName;
+      html+=`<div style="display:flex;align-items:center;gap:.5rem;background:${isMe?'#1a3a1f':'var(--card)'};border:1px solid ${isMe?'var(--accent)':'var(--border)'};border-radius:10px;padding:.4rem .6rem;margin-bottom:.3rem;">
+        <span style="font-size:.8rem;width:22px;text-align:center;">${medals[pos]||(pos+1)+'º'}</span>
+        <span style="flex:1;font-size:.68rem;color:${isMe?'var(--accent2)':'#cfe'};">${d.nome||'???'}${isMe?' (você)':''}</span>
+        <span style="font-size:.62rem;color:var(--yellow);">${fmt(d.score||0)}</span>
+      </div>`;pos++;
+    });
+    el.innerHTML=html;
+  }catch(e){el.innerHTML='<div style="text-align:center;font-size:.5rem;color:#ff6666;">Erro ao carregar!</div>';}
+}
+
+// ══════════════════════════════════════════════════════
+// 👥 AMIGOS
+// ══════════════════════════════════════════════════════
+function getFriends(){return JSON.parse(localStorage.getItem('cmnFriends')||'[]');}
+function saveFriends(f){localStorage.setItem('cmnFriends',JSON.stringify(f));}
+function addFriend(){
+  const inp=document.getElementById('friendAddInput');
+  const name=inp?.value.trim();
+  if(!name){toast('Coloca o nome do seu amigo!','red');return;}
+  const f=getFriends();
+  if(f.some(x=>x.nome.toLowerCase()===name.toLowerCase())){toast('Já é seu amigo!','red');return;}
+  f.push({nome:name});saveFriends(f);
+  inp.value='';toast('👥 '+name+' adicionado!','green');
+  sfx('friend');
+  checkMS();
+  renderFriendsList();
+}
+function removeFriendN(name){
+  saveFriends(getFriends().filter(f=>f.nome!==name));
+  renderFriendsList();
+}
+async function renderFriendsList(){
+  const el=document.getElementById('friendsList');if(!el)return;
+  const friends=getFriends();
+  if(!friends.length){el.innerHTML='<div style="text-align:center;font-size:.5rem;color:var(--sub);">Adicione um amigo pra ver o ranking entre vocês!</div>';return;}
+  el.innerHTML='<div style="text-align:center;font-size:.5rem;color:var(--sub);">Carregando... 🔄</div>';
+  const scored=[];
+  for(const f of friends){
+    let s=0;
+    try{
+      if(db){const snap=await db.collection('jogadoresNatureza').where('nome','==',f.nome).get();
+        if(!snap.empty)s=snap.docs[0].data().score||0;}
+    }catch(e){}
+    scored.push({nome:f.nome,score:s});
+  }
+  const all=[...scored,{nome:(playerName||'Você')+' (você)',score,isMe:true}].sort((a,b)=>b.score-a.score);
+  const medals=['🥇','🥈','🥉'];
+  let html='<div style="font-size:.65rem;color:var(--yellow);margin-bottom:.5rem;">🏅 RANKING ENTRE AMIGOS</div>';
+  all.forEach((p,i)=>{
+    html+=`<div style="display:flex;align-items:center;gap:.5rem;background:${p.isMe?'#1a3a1f':'var(--card)'};border:1px solid ${p.isMe?'var(--accent)':'var(--border)'};border-radius:10px;padding:.4rem .6rem;margin-bottom:.3rem;">
+      <span style="font-size:.7rem;width:20px;text-align:center;">${medals[i]||(i+1)+'º'}</span>
+      <span style="flex:1;font-size:.66rem;color:${p.isMe?'var(--accent2)':'#cfe'};">${p.nome}</span>
+      <span style="font-size:.6rem;color:var(--yellow);">${fmt(p.score)}</span>
+      ${!p.isMe?`<button onclick="sendGiftToFriend('${p.nome.replace(/'/g,"\\'")}')" style="font-size:.55rem;padding:.2rem .4rem;background:linear-gradient(135deg,#553300,#ffaa00);color:#000;border:none;border-radius:6px;cursor:pointer;" title="Mandar presente (1x por dia)">🎁</button>`:''}
+      ${!p.isMe?`<button onclick="removeFriendN('${p.nome.replace(/'/g,"\\'")}')" style="font-size:.55rem;padding:.2rem .4rem;background:#3a1010;color:#ff8888;border:none;border-radius:6px;cursor:pointer;">🗑️</button>`:''}
+    </div>`;
+  });
+  el.innerHTML=html;
+}
+
+// ══════════════════════════════════════════════════════
+// 🎭 MODOS
+// ══════════════════════════════════════════════════════
+let activeMode=localStorage.getItem('cmnMode')||'';
+const MODES=[
+  {id:'noturno',name:'MODO NOTURNO',icon:'🌙',desc:'Visual noturno + Mult ×1.3 enquanto ativo',bg:'radial-gradient(circle at 50% 0%,#0a1530,#020410 70%)',mult:1.3},
+  {id:'chuva',  name:'MODO CHUVA',  icon:'🌧️',desc:'Visual de chuva + +50% de pontos por segundo',bg:'radial-gradient(circle at 50% 0%,#0a2838,#020a10 70%)',mult:1,autoBonus:1.5},
+  {id:'selva',  name:'MODO SELVA',  icon:'🐾',desc:'Visual de selva + +30% por clique',bg:'radial-gradient(circle at 50% 0%,#0f3018,#020d06 70%)',mult:1,clickBonus:1.3},
+];
+function getModeMult(){const m=MODES.find(x=>x.id===activeMode);return m?m.mult||1:1;}
+function getModeAutoBonus(){const m=MODES.find(x=>x.id===activeMode);return m?m.autoBonus||1:1;}
+function getModeClickBonus(){const m=MODES.find(x=>x.id===activeMode);return m?m.clickBonus||1:1;}
+function toggleMode(id){
+  if(activeMode===id){activeMode='';toast('Modo desativado.','green');}
+  else{activeMode=id;const m=MODES.find(x=>x.id===id);toast(m.icon+' '+m.name+' ativado!','rainbow');}
+  localStorage.setItem('cmnMode',activeMode);
+  sfx('mode');
+  applyModeVisual();renderModesList();updateUI();
+}
+function applyModeVisual(){
+  const m=MODES.find(x=>x.id===activeMode);
+  document.body.style.background=m?m.bg:'';
+}
+function renderModesList(){
+  const el=document.getElementById('modesList');if(!el)return;
+  let html='';
+  MODES.forEach(m=>{
+    const on=activeMode===m.id;
+    html+=`<div class="ucard ${on?'afford':''}" onclick="toggleMode('${m.id}')">
+      <span class="ui">${m.icon}</span>
+      <div class="un"><div class="t">${m.name}${on?' ✅ ATIVO':''}</div><div class="d">${m.desc}</div></div>
+    </div>`;
+  });
+  el.innerHTML=html;
+}
+
+// ══════════════════════════════════════════════════════
+// 🎨 SKINS DO BOTÃO
+// ══════════════════════════════════════════════════════
+const SKINS=[
+  {id:'sk_folha',  name:'FOLHA',         emoji:'🌿',req:0},
+  {id:'sk_flor',   name:'FLOR',          emoji:'🌸',req:10000},
+  {id:'sk_trevo',  name:'TREVO',         emoji:'🍀',req:100000},
+  {id:'sk_dourada',name:'FOLHA DOURADA', emoji:'🍁',req:1000000},
+  {id:'sk_cristal',name:'CRISTAL VERDE', emoji:'💎',req:100000000},
+  {id:'sk_coracao',name:'CORAÇÃO VERDE', emoji:'💚',req:0,achv:'ms_upg2'},
+  {id:'sk_planeta',name:'PLANETA',       emoji:'🌍',req:1e12},
+  {id:'sk_arco',   name:'ARCO-ÍRIS',     emoji:'🌈',req:0,achv:'ms_combo2'},
+];
+// ══ GERADOR DE MAIS SKINS (pra ter MUITAS opções) ══
+const EXTRA_SKIN_TEMPLATES=[
+  ['🌱','BROTINHO'],['🌿','RAMINHO'],['🍃','FOLHA AO VENTO'],['🌾','TRIGAL'],['🌻','GIRASSOL'],['🌼','MARGARIDA'],['🌷','TULIPA'],['🌹','ROSA'],['🥀','ROSA MURCHA'],['🌺','HIBISCO'],['🪷','LÓTUS SAGRADO'],['🌸','CEREJEIRA'],
+  ['🌳','CARVALHO'],['🌲','PINHEIRO'],['🌴','COQUEIRO'],['🎍','BAMBU'],['🌵','CACTO DO DESERTO'],['🍄','COGUMELO MÁGICO'],['🪴','VASO FLORIDO'],['🍂','OUTONO'],['🍁','BORDO'],['🍀','TREVO DA SORTE'],['🌰','CASTANHA'],['🌶️','PIMENTA'],
+  ['🐝','ABELHA OPERÁRIA'],['🦋','BORBOLETA MONARCA'],['🐛','LAGARTA'],['🐌','CARACOL'],['🐞','JOANINHA'],['🪲','ESCARAVELHO'],['🕷️','ARANHA'],['🦗','GRILO'],['🐜','FORMIGA'],['🦟','MOSQUITO'],['🦠','MICRÓBIO VERDE'],['🐚','CONCHA'],
+  ['🐢','TARTARUGA'],['🐍','COBRA'],['🦎','LAGARTIXA'],['🐊','CROCODILO'],['🦂','ESCORPIÃO'],['🐠','PEIXINHO'],['🐟','PEIXE'],['🐡','BAIACU'],['🐬','DELFIM'],['🐳','BALEIA'],['🐋','CACHALOTE'],['🦭','FOCA'],
+  ['🐧','PINGUIM'],['🦅','ÁGUIA'],['🦆','PATO'],['🦢','CISNE'],['🦜','PAPAGAIO'],['🦉','CORUJA SÁBIA'],['🦩','FLAMINGO'],['🦤','DODÔ'],['🐦','PASSARINHO'],['🦃','PERU'],['🐓','GALO'],['🦚','PAVÃO'],
+  ['🦊','RAPOSA'],['🐺','LOBO'],['🐻','URSO'],['🐼','PANDA'],['🦁','LEÃO'],['🐯','TIGRE'],['🐅','TIGRE DE BENGALA'],['🐆','LEOPARDO'],['🦓','ZEBRA'],['🦌','VEADO'],['🦬','BISÃO'],['🐃','BÚFALO'],
+  ['🐘','ELEFANTE'],['🦏','RINOCERONTE'],['🦛','HIPOPÓTAMO'],['🐫','CAMELO'],['🐪','DROMEDÁRIO'],['🦒','GIRAFA'],['🐐','CABRA'],['🐑','OVELHA'],['🦙','LHAMA'],['🐎','CAVALO'],['🦄','UNICÓRNIO'],['🐂','TOURO'],
+  ['⭐','ESTRELA'],['🌟','ESTRELA BRILHANTE'],['✨','BRILHO'],['💫','ESTRELA CADENTE II'],['☀️','SOL RADIANTE'],['🌤️','CÉU PARCIALMENTE NUBLADO'],['⛅','NUVENS PASSAGEIRAS'],['🌥️','CÉU NUBLADO'],['☁️','NUVEM'],['🌦️','SOL E CHUVA'],['🌧️','CHUVA'],['⛈️','TEMPESTADE'],
+  ['🌩️','RAIO'],['❄️','FLOCO DE NEVE'],['☃️','BONECO DE NEVE'],['⛄','BONECO DE NEVE SEM NEVE'],['🌨️','NEVASCA'],['💨','VENTO'],['🌪️','TORNADO'],['🌫️','NÉVOA'],['🌈','ARCO-ÍRIS DUPLO'],['☔','GUARDA-CHUVA'],['💧','GOTA DE ÁGUA'],['🌊','ONDA'],
+  ['🏔️','MONTANHA NEVADA'],['⛰️','MONTANHA'],['🌋','VULCÃO'],['🗻','MONTE FUJI'],['🏞️','PARQUE NACIONAL'],['🏝️','ILHA DESERTA'],['🏜️','DESERTO'],['🌍','TERRA (EUROPA/ÁFRICA)'],['🌎','TERRA (AMÉRICAS)'],['🌏','TERRA (ÁSIA)'],['🪐','SATURNO'],['🌌','VIA LÁCTEA'],
+];
+(function(){
+  let req=2000;
+  EXTRA_SKIN_TEMPLATES.forEach((t,i)=>{
+    SKINS.push({id:'esk'+(i+1),name:t[1],emoji:t[0],req:Math.floor(req)});
+    req*=1.3;
+  });
+})();
+// ══ SEGUNDA LEVA DE SKINS (mais 90!) ══
+const EXTRA_SKIN_TEMPLATES_2=[
+  ['🌒','LUA NOVA CRESCENTE'],['🌓','MEIA LUA'],['🌔','LUA QUASE CHEIA'],['🌕','LUA REDONDA'],['🌖','LUA MENGUANTE'],['🌗','MEIA LUA MENGUANTE'],
+  ['🪻','LAVANDA ROXA'],['🎋','FOLHA DE BAMBU'],['🪹','NINHO'],['🪺','NINHO CHEIO'],['🐣','PASSARINHO NASCENDO'],['🐤','PINTINHO AMARELO'],
+  ['🐥','PINTINHO LATERAL'],['🦅','ÁGUIA REAL'],['🦢','CISNE BRANCO'],['🐿️','ESQUILO ALEGRE'],['🦔','OURIÇO FOFO'],['🦇','MORCEGO NOTURNO'],
+  ['🐹','HAMSTER FOFO'],['🐭','CAMUNDONGO'],['🐰','COELHINHO'],['🦘','CANGURU SALTITANTE'],['🦡','TEXUGO CURIOSO'],['🦥','PREGUIÇA TRANQUILA'],
+  ['🐲','DRAGÃO BEBÊ'],['🦕','BRONTOSSAURO'],['🦖','T-REX VERDE'],['🦈','TUBARÃO AZUL'],['🐙','POLVO ROSA'],['🦑','LULA GIGANTE'],
+  ['🦀','CARANGUEJO VERMELHO'],['🐡','BAIACU INFLADO'],['🌅','NASCER DO SOL DOURADO'],['🌇','PÔR DO SOL ALARANJADO'],['🌃','CÉU NOTURNO'],['🎆','FOGOS DE ARTIFÍCIO VERDES'],
+  ['✴️','ESTRELA BRILHANTE II'],['🔆','LUZ SOLAR'],['🌀','VÓRTICE'],['🪨','ROCHA'],['🪵','TORA DE MADEIRA'],['⛺','BARRACA DE CAMPING'],
+  ['🛖','OCA'],['🌾','ESPIGA DE TRIGO'],['🍇','PARREIRA'],['🍈','MELÃO MADURO'],['🍉','MELANCIA FATIADA'],['🍊','LARANJEIRA'],
+  ['🍋','LIMOEIRO'],['🍌','BANANEIRA'],['🍍','ABACAXIZEIRO'],['🥭','MANGUEIRA'],['🍎','MACIEIRA'],['🍐','PEREIRA'],
+  ['🍑','PESSEGUEIRO'],['🍓','MORANGUEIRO'],['🫐','MIRTILEIRO'],['🥝','KIWIZEIRO'],['🥥','COQUEIRO ANÃO'],['🥑','ABACATEIRO'],
+  ['🥕','CENOURINHA'],['🌽','MILHARAL'],['🧺','CESTA CHEIA'],['🏔️','PICO GELADO II'],['🌋','VULCÃO ATIVO'],['🏝️','ILHA TROPICAL'],
+  ['🌐','TEIA DA VIDA'],['🪷','FLOR DE LÓTUS ROSA'],['🍄','COGUMELO VENENOSO (BONITO)'],['🌵','CACTO FLORIDO'],['🎍','PINHO DE ANO NOVO'],['🌴','PALMEIRA TROPICAL'],
+];
+(function(){
+  let req=2500;
+  EXTRA_SKIN_TEMPLATES_2.forEach((t,i)=>{
+    SKINS.push({id:'esk2_'+(i+1),name:t[1],emoji:t[0],req:Math.floor(req)});
+    req*=1.32;
+  });
+})();
+let activeSkin=localStorage.getItem('cmnSkin')||'sk_folha';
+let skinChanges=0,giftsSent=0;
+function isSkinUnlocked(s){
+  if(s.shopOnly)return boughtSkins.has(s.id);
+  if(s.req>0&&totalEarned>=s.req)return true;
+  if(s.achv&&dMS.has(s.achv))return true;
+  if(s.req===0&&!s.achv)return true;
+  return false;
+}
+function selectSkin(id){
+  const s=SKINS.find(x=>x.id===id);if(!s||!isSkinUnlocked(s))return;
+  activeSkin=id;localStorage.setItem('cmnSkin',id);
+  skinChanges++;
+  applySkinVisual();renderSkinsList();checkMS();
+  sfx('skin');
+  toast(s.emoji+' Skin '+s.name+' equipada!','green');
+}
+function applySkinVisual(){
+  const s=SKINS.find(x=>x.id===activeSkin)||SKINS[0];
+  const be=document.getElementById('bE');if(be)be.textContent=s.emoji;
+}
+function renderSkinsList(){
+  const el=document.getElementById('skinsList');if(!el)return;
+  let html='';
+  SKINS.forEach(s=>{
+    const unlocked=isSkinUnlocked(s);
+    const on=activeSkin===s.id;
+    html+=`<div class="ucard ${on?'afford':''} ${unlocked?'':'owned'}" onclick="${unlocked?`selectSkin('${s.id}')`:''}">
+      <span class="ui">${unlocked?s.emoji:'🔒'}</span>
+      <div class="un"><div class="t">${s.name}${on?' ✅ EQUIPADA':''}</div><div class="d">${unlocked?'Desbloqueada':'Precisa de '+fmt(s.req)+' pontos totais'}</div></div>
+    </div>`;
+  });
+  el.innerHTML=html;
+}
+
+// ══════════════════════════════════════════════════════
+// 🔄 MODO DE TROCA (avatar + loja de trocas + trocar com amigo)
+// ══════════════════════════════════════════════════════
+const AVATARS=['🌱','🌳','🌻','🌸','🦋','🐝','🦜','🦊','🐢','🐬','🌍','🌈'];
+let playerAvatar=localStorage.getItem('cmnAvatar')||'🌱';
+function selectAvatar(emoji){
+  playerAvatar=emoji;localStorage.setItem('cmnAvatar',emoji);
+  sfx('trade');toast(emoji+' Avatar trocado!','green');
+  renderAvatarList();saveScoreToFirebase();
+}
+function renderAvatarList(){
+  const el=document.getElementById('avatarList');if(!el)return;
+  let html='';
+  AVATARS.forEach(a=>{
+    const on=playerAvatar===a;
+    html+=`<button onclick="selectAvatar('${a}')" style="font-size:1.4rem;padding:.4rem;background:${on?'var(--accent)':'var(--card)'};border:1px solid ${on?'var(--accent2)':'var(--border)'};border-radius:10px;cursor:pointer;">${a}</button>`;
+  });
+  el.innerHTML=html;
+}
+const TRADE_SHOP=[
+  {id:'ts1',name:'+5.000 pts/clique por 30s',cost:20000, fn:()=>{tempMult=Math.max(tempMult,2);tempMultExp=Date.now()+30000;}},
+  {id:'ts2',name:'+50 pts/clique permanente', cost:80000, fn:()=>{clickPower+=50;}},
+  {id:'ts3',name:'+200 pts/seg permanente',   cost:150000,fn:()=>{autoPerSec+=200;}},
+  {id:'ts4',name:'Combo instantâneo: maxCombo+10',cost:50000,fn:()=>{maxComboEver+=10;checkMS();}},
+  {id:'ts5',name:'1 🍃 de prestígio na hora', cost:300000,fn:()=>{prestigeStars+=1;}},
+];
+function tradeShopBuy(id){
+  const t=TRADE_SHOP.find(x=>x.id===id);if(!t||score<t.cost)return;
+  score-=t.cost;try{t.fn();}catch(e){}
+  sfx('trade');toast('🔄 Trocou por: '+t.name,'green');
+  updateUI();renderTradeShop();checkMS();checkPrestige();
+}
+function renderTradeShop(){
+  const el=document.getElementById('tradeShopList');if(!el)return;
+  let html='';
+  TRADE_SHOP.forEach(t=>{
+    const afford=score>=t.cost;
+    html+=`<div class="ucard ${afford?'afford':''}" onclick="tradeShopBuy('${t.id}')">
+      <span class="ui">🔄</span>
+      <div class="un"><div class="t">${t.name}</div></div>
+      <div class="uc">${fmt(t.cost)}</div>
+    </div>`;
+  });
+  el.innerHTML=html;
+}
+function canTradeFriendToday(){return localStorage.getItem('cmnLastTradeDate')!==todayKey();}
+async function tradeWithFriend(name){
+  if(!canTradeFriendToday()){toast('Você já trocou com um amigo hoje! Volta amanhã 🔄','red');return;}
+  if(score<2000){toast('Você precisa de pelo menos 2.000 pontos pra trocar!','red');return;}
+  if(!db){toast('Troca precisa de conexão. Tenta de novo.','red');return;}
+  try{
+    const snap=await db.collection('jogadoresNatureza').where('nome','==',name).get();
+    if(snap.empty){toast('Jogador não encontrado!','red');return;}
+    const doc=snap.docs[0];
+    await db.collection('jogadoresNatureza').doc(doc.id).update({score:(doc.data().score||0)+2000,updatedAt:firebase.firestore.FieldValue.serverTimestamp()});
+    score-=2000;score+=3000;totalEarned+=3000;
+    localStorage.setItem('cmnLastTradeDate',todayKey());
+    sfx('trade');admConfettiSafe();
+    toast('🔄 Trocou com '+name+'! Deu 2.000 e recebeu 3.000 de volta!','rainbow');
+    updateUI();renderTradeFriendList();
+  }catch(e){toast('Erro na troca!','red');}
+}
+function renderTradeFriendList(){
+  const el=document.getElementById('tradeFriendList');if(!el)return;
+  const friends=getFriends();
+  if(!friends.length){el.innerHTML='<div style="text-align:center;font-size:.5rem;color:var(--sub);">Adicione amigos na aba Amigos pra poder trocar!</div>';return;}
+  const can=canTradeFriendToday();
+  let html='';
+  friends.forEach(f=>{
+    html+=`<div class="ucard" onclick="${can?`tradeWithFriend('${f.nome.replace(/'/g,"\\'")}')`: ''}" style="${can?'':'opacity:.5;cursor:not-allowed;'}">
+      <span class="ui">🤝</span>
+      <div class="un"><div class="t">${f.nome}</div><div class="d">${can?'Trocar 2.000 → 3.000 pts':'Já trocou hoje'}</div></div>
+    </div>`;
+  });
+  el.innerHTML=html;
+}
+function admConfettiSafe(){try{toast('🎉','rainbow');}catch(e){}}
+
+// ══════════════════════════════════════════════════════
+// 🌱 SEMENTES E JARDIM
+// Compre sementes, plante, espere crescer, colha pontos!
+// ══════════════════════════════════════════════════════
+const REWARD_POOL=[1,10,30,50,100,1000,2000,3000,10000,1000000];
+const SEED_TYPES=[
+  {id:'sd1',name:'COMUM',               icon:'🌱',cost:20,    grow:8,  poolMin:0,poolMax:2}, // 1,10,30
+  {id:'sd2',name:'RARO',                icon:'🌿',cost:150,   grow:20, poolMin:1,poolMax:4}, // 10,30,50,100
+  {id:'sd3',name:'ÉPICO',               icon:'🍀',cost:800,   grow:45, poolMin:3,poolMax:5}, // 50,100,1000
+  {id:'sd4',name:'LENDÁRIO',            icon:'🌟',cost:4000,  grow:90, poolMin:5,poolMax:7}, // 1000,2000,3000
+  {id:'sd5',name:'SUPER LENDÁRIO',      icon:'💫',cost:20000, grow:180,poolMin:6,poolMax:8}, // 2000,3000,10000
+  {id:'sd6',name:'ULTRA LENDÁRIO',      icon:'🌌',cost:100000,grow:300,poolMin:7,poolMax:9}, // 3000,10000,1000000
+  {id:'sd7',name:'ULTRA MEGA BLAST LENDÁRIO',icon:'💥',cost:500000,grow:600,poolMin:8,poolMax:9}, // 10000,1000000
+  {id:'sd8',name:'DOURADA',             icon:'🌟',cost:2500,  grow:60, poolMin:4,poolMax:6}, // 100,1000,2000
+  {id:'sd9',name:'CRISTALINA',          icon:'💎',cost:12000, grow:120,poolMin:5,poolMax:7}, // 1000,2000,3000
+  {id:'sd10',name:'ARCO-ÍRIS',          icon:'🌈',cost:60000, grow:150,poolMin:6,poolMax:9}, // 2000,3000,10000,1000000
+  {id:'sd11',name:'SOMBRIA',            icon:'🖤',cost:300,   grow:15, poolMin:0,poolMax:3}, // 1,10,30,50 (barata e rápida)
+  {id:'sd12',name:'CÓSMICA',            icon:'🪐',cost:350000,grow:480,poolMin:7,poolMax:9}, // 3000,10000,1000000
+];
+const GARDEN_SIZE=6;
+let garden=JSON.parse(localStorage.getItem('cmnGarden')||'null')||Array(GARDEN_SIZE).fill(null);
+function saveGarden(){localStorage.setItem('cmnGarden',JSON.stringify(garden));}
+function buySeedAndPlant(seedId){
+  const seed=SEED_TYPES.find(s=>s.id===seedId);if(!seed)return;
+  if(score<seed.cost){toast('Pontos insuficientes pra essa semente!','red');return;}
+  const slot=garden.findIndex(g=>g===null);
+  if(slot===-1){toast('Seu jardim está cheio! Colha alguma coisa primeiro.','red');return;}
+  score-=seed.cost;updateUI();
+  garden[slot]={seedId:seed.id,plantedAt:Date.now()};
+  saveGarden();
+  sfx('trade');toast(seed.icon+' '+seed.name+' plantada! Volte em '+seed.grow+'s.','green');
+  renderGarden();renderSeedShop();
+}
+function harvestPlot(i){
+  const plot=garden[i];if(!plot)return;
+  const seed=SEED_TYPES.find(s=>s.id===plot.seedId);if(!seed)return;
+  const elapsed=(Date.now()-plot.plantedAt)/1000;
+  if(elapsed<seed.grow)return;
+  const idx=seed.poolMin+Math.floor(Math.random()*(seed.poolMax-seed.poolMin+1));
+  const reward=REWARD_POOL[idx];
+  score+=reward;totalEarned+=reward;
+  garden[i]=null;saveGarden();
+  sfx(reward>=10000?'rareWeather':'achievement');
+  if(reward>=1000000)admConfetti?.();
+  toast(seed.icon+' Colheu '+seed.name+'! +'+fmt(reward)+' pontos!',reward>=10000?'rainbow':'gold');
+  updateUI();checkMS();checkPrestige();renderGarden();
+}
+function renderSeedShop(){
+  const el=document.getElementById('seedShopList');if(!el)return;
+  let html='';
+  SEED_TYPES.forEach(s=>{
+    const range=REWARD_POOL.slice(s.poolMin,s.poolMax+1).map(fmt).join(' / ');
+    const afford=score>=s.cost;
+    html+=`<div class="ucard ${afford?'afford':''}" onclick="buySeedAndPlant('${s.id}')">
+      <span class="ui">${s.icon}</span>
+      <div class="un"><div class="t">${s.name}</div><div class="d">⏱️ ${s.grow}s · 🎁 ${range} pts</div></div>
+      <div class="uc">${fmt(s.cost)}</div>
+    </div>`;
+  });
+  el.innerHTML=html;
+}
+function renderGarden(){
+  const el=document.getElementById('gardenGrid');if(!el)return;
+  let html='';
+  garden.forEach((plot,i)=>{
+    if(!plot){
+      html+='<div style="background:var(--card);border:2px dashed var(--border);border-radius:12px;padding:.8rem;text-align:center;font-size:.55rem;color:var(--sub);min-height:70px;display:flex;align-items:center;justify-content:center;">🕳️ Vazio</div>';
+      return;
+    }
+    const seed=SEED_TYPES.find(s=>s.id===plot.seedId);
+    const elapsed=(Date.now()-plot.plantedAt)/1000;
+    const ready=elapsed>=seed.grow;
+    const pct=Math.min(100,Math.floor(elapsed/seed.grow*100));
+    if(ready){
+      html+=`<div onclick="harvestPlot(${i})" style="background:#1a3a1f;border:2px solid var(--accent);border-radius:12px;padding:.6rem;text-align:center;cursor:pointer;min-height:70px;">
+        <div style="font-size:1.6rem;">${seed.icon}</div>
+        <div style="font-size:.55rem;color:var(--accent2);">✅ COLHER!</div>
+      </div>`;
+    } else {
+      const left=Math.ceil(seed.grow-elapsed);
+      html+=`<div style="background:var(--card);border:2px solid var(--border);border-radius:12px;padding:.6rem;text-align:center;min-height:70px;">
+        <div style="font-size:1.3rem;">${seed.icon}</div>
+        <div style="background:#0a2418;border-radius:6px;height:6px;overflow:hidden;margin:.3rem 0;"><div style="height:100%;width:${pct}%;background:var(--accent);"></div></div>
+        <div style="font-size:.5rem;color:var(--sub);">${left}s</div>
+      </div>`;
+    }
+  });
+  el.innerHTML=html;
+}
+setInterval(()=>{
+  if(document.getElementById('tab-seeds')?.classList.contains('on'))renderGarden();
+},1000);
+
+// ══════════════════════════════════════════════════════
+// ✨ LOJA ESPECIAL — skins exclusivas, Robô e Relógio
+// ══════════════════════════════════════════════════════
+let boughtSkins=new Set(JSON.parse(localStorage.getItem('cmnBoughtSkins')||'[]'));
+const EXCLUSIVE_SKINS=[
+  {id:'sk_robo',   name:'ROBÔ JARDINEIRO', emoji:'🤖',shopCost:50000},
+  {id:'sk_relogio',name:'RELÓGIO DOURADO', emoji:'⏰',shopCost:80000},
+  {id:'sk_estrela',name:'ESTRELA CADENTE', emoji:'🌠',shopCost:150000},
+];
+EXCLUSIVE_SKINS.forEach(s=>SKINS.push({id:s.id,name:s.name,emoji:s.emoji,req:0,shopOnly:true}));
+function buyExclusiveSkin(id){
+  const s=EXCLUSIVE_SKINS.find(x=>x.id===id);if(!s)return;
+  if(boughtSkins.has(id)){toast('Você já tem essa skin!','red');return;}
+  if(score<s.shopCost){toast('Pontos insuficientes!','red');return;}
+  score-=s.shopCost;updateUI();
+  boughtSkins.add(id);localStorage.setItem('cmnBoughtSkins',JSON.stringify([...boughtSkins]));
+  sfx('skin');toast(s.emoji+' Skin '+s.name+' comprada!','rainbow');
+  renderSpecialShop();
+}
+
+let roboCount=parseInt(localStorage.getItem('cmnRoboCount')||'0',10);
+function getRoboCost(){return Math.floor(8000*Math.pow(1.6,roboCount));}
+function buyRobo(){
+  const cost=getRoboCost();
+  if(score<cost){toast('Pontos insuficientes pro Robô!','red');return;}
+  score-=cost;roboCount++;
+  localStorage.setItem('cmnRoboCount',String(roboCount));
+  autoPerSec+=500*Math.pow(1.3,roboCount-1);
+  updateUI();sfx('devtool');
+  toast('🤖 Robô Jardineiro #'+roboCount+' contratado! +pontos/seg permanente!','rainbow');
+  renderSpecialShop();
+}
+
+let relogioCooldownUntil=parseInt(localStorage.getItem('cmnRelogioCooldown')||'0',10);
+function getRelogioCost(){return 5000;}
+function useRelogio(){
+  const now=Date.now();
+  if(now<relogioCooldownUntil){toast('⏰ O relógio precisa recarregar! Espera um pouco.','red');return;}
+  if(score<getRelogioCost()){toast('Pontos insuficientes pro Relógio!','red');return;}
+  score-=getRelogioCost();updateUI();
+  relogioCooldownUntil=now+60000;
+  localStorage.setItem('cmnRelogioCooldown',String(relogioCooldownUntil));
+  sfx('trade');
+  const choice=Math.floor(Math.random()*3);
+  if(choice===0){
+    seasonalNextAt=Date.now();tickSeasonalEvents();
+    toast('⏰ O relógio adiantou o tempo... um evento sazonal começou!','rainbow');
+  } else if(choice===1){
+    weatherNextAt=Date.now();tickWeather();
+    toast('⏰ O relógio girou rápido demais... o clima mudou!','rainbow');
+  } else {
+    const bonus=Math.floor(1000+Math.random()*49000);
+    score+=bonus;totalEarned+=bonus;updateUI();
+    toast('⏰ O relógio achou um tesouro perdido no tempo! +'+fmt(bonus)+' pts!','rainbow');
+  }
+  renderSpecialShop();
+}
+function renderSpecialShop(){
+  const el=document.getElementById('specialShopList');if(!el)return;
+  let html='';
+  EXCLUSIVE_SKINS.forEach(s=>{
+    const owned=boughtSkins.has(s.id);
+    html+=`<div class="ucard ${owned?'owned':(score>=s.shopCost?'afford':'')}" onclick="${owned?'':`buyExclusiveSkin('${s.id}')`}">
+      <span class="ui">${s.emoji}</span>
+      <div class="un"><div class="t">${s.name}${owned?' ✅':''}</div><div class="d">Skin exclusiva pro botão</div></div>
+      <div class="uc">${owned?'OK':fmt(s.shopCost)}</div>
+    </div>`;
+  });
+  const roboCost=getRoboCost();
+  html+=`<div class="ucard ${score>=roboCost?'afford':''}" onclick="buyRobo()">
+    <span class="ui">🤖</span>
+    <div class="un"><div class="t">ROBÔ JARDINEIRO (já tem ${roboCount})</div><div class="d">+pontos/seg permanente, pode comprar de novo (fica mais caro)</div></div>
+    <div class="uc">${fmt(roboCost)}</div>
+  </div>`;
+  const now=Date.now();
+  const onCooldown=now<relogioCooldownUntil;
+  const cdLeft=Math.ceil((relogioCooldownUntil-now)/1000);
+  html+=`<div class="ucard ${!onCooldown&&score>=getRelogioCost()?'afford':''} ${onCooldown?'owned':''}" onclick="${onCooldown?'':'useRelogio()'}">
+    <span class="ui">⏰</span>
+    <div class="un"><div class="t">RELÓGIO DO TEMPO</div><div class="d">${onCooldown?'Recarregando: '+cdLeft+'s':'Dispara um evento aleatório na hora! (1min de recarga)'}</div></div>
+    <div class="uc">${onCooldown?'⏳':fmt(getRelogioCost())}</div>
+  </div>`;
+  el.innerHTML=html;
+}
+setInterval(()=>{
+  if(document.getElementById('tab-seeds')?.classList.contains('on')&&Date.now()<relogioCooldownUntil)renderSpecialShop();
+},1000);
+
+
+
+
+// ══════════════════════════════════════════════════════
+// 🌦️ CLIMA DINÂMICO (muda automaticamente com o tempo)
+// ══════════════════════════════════════════════════════
+const WEATHER_TYPES=[
+  {id:'sol',     name:'ENSOLARADO', icon:'☀️',bg:'radial-gradient(circle at 50% 0%,#0a3018,var(--bg) 70%)',mult:1},
+  {id:'chuva',   name:'CHUVOSO',    icon:'🌧️',bg:'radial-gradient(circle at 50% 0%,#0a2838,#020a10 70%)',mult:1.1},
+  {id:'nublado', name:'NUBLADO',    icon:'🌫️',bg:'radial-gradient(circle at 50% 0%,#1a2020,#0a0e0e 70%)',mult:1},
+  {id:'neve',    name:'NEVANDO',    icon:'❄️',bg:'radial-gradient(circle at 50% 0%,#0a2030,#020810 70%)',mult:1.15},
+  {id:'arco',    name:'ARCO-ÍRIS',  icon:'🌈',bg:'radial-gradient(circle at 50% 0%,#2a1838,#0a0815 70%)',mult:1.5},
+];
+let currentWeather=WEATHER_TYPES[0];
+let weatherNextAt=Date.now()+(2*60+Math.random()*3*60)*1000;
+function tickWeather(){
+  const now=Date.now();
+  if(now>=weatherNextAt){
+    const pool=WEATHER_TYPES.filter(w=>w.id!=='arco'||Math.random()<.15);
+    const candidates=Math.random()<.08?[WEATHER_TYPES.find(w=>w.id==='arco')]:WEATHER_TYPES.filter(w=>w.id!=='arco');
+    currentWeather=candidates[Math.floor(Math.random()*candidates.length)];
+    weatherNextAt=now+(2*60+Math.random()*3*60)*1000;
+    if(!activeMode)document.body.style.background=currentWeather.bg;
+    sfx(currentWeather.id==='arco'?'rareWeather':'weather');
+    toast(currentWeather.icon+' O clima mudou: '+currentWeather.name+'!','green');
+  }
+  renderWeatherWidget();
+}
+function getWeatherMult(){return currentWeather.mult;}
+function renderWeatherWidget(){
+  const el=document.getElementById('weatherWidget');if(!el)return;
+  el.innerHTML=currentWeather.icon+' '+currentWeather.name+(currentWeather.mult>1?' (×'+currentWeather.mult+')':'');
+}
+
+// ══════════════════════════════════════════════════════
+// 🎁 PRESENTES ENTRE AMIGOS
+// ══════════════════════════════════════════════════════
+function canSendGiftToday(){return localStorage.getItem('cmnLastGiftDate')!==todayKey();}
+async function sendGiftToFriend(name){
+  if(!canSendGiftToday()){toast('Você já mandou um presente hoje! Volta amanhã 🎁','red');return;}
+  if(!db){toast('Presentes precisam de conexão. Tenta de novo.','red');return;}
+  try{
+    const snap=await db.collection('jogadoresNatureza').where('nome','==',name).get();
+    if(snap.empty){toast('Jogador não encontrado!','red');return;}
+    const doc=snap.docs[0];
+    const giftAmount=5000;
+    await db.collection('jogadoresNatureza').doc(doc.id).update({score:(doc.data().score||0)+giftAmount,updatedAt:firebase.firestore.FieldValue.serverTimestamp()});
+    localStorage.setItem('cmnLastGiftDate',todayKey());
+    giftsSent++;
+    score+=1000;totalEarned+=1000;updateUI();
+    toast('🎁 Presente de '+fmt(giftAmount)+' pts enviado pra '+name+'! (+1K de bônus pra você)','green');
+    sfx('gift');
+    renderFriendsList();checkMS();
+  }catch(e){toast('Erro ao enviar presente!','red');}
+}
+
+
+// ══════════════════════════════════════════════════════
+// 🛠️ DEVTOOLS (testar coisas rápido)
+// ══════════════════════════════════════════════════════
+const DEV_PASSWORD='natureza123'; // pra trocar a senha, só editar esse texto aqui
+function openDevTools(){
+  if(document.getElementById('devToolsOv')||document.getElementById('devPassOv'))return;
+  const ov=document.createElement('div');
+  ov.id='devPassOv';
+  ov.style.cssText='position:fixed;inset:0;z-index:2500;background:#000000ee;display:flex;align-items:center;justify-content:center;padding:1rem;';
+  ov.innerHTML=`<div style="background:#04220f;border:3px solid var(--accent);border-radius:16px;padding:1.1rem;max-width:300px;width:100%;text-align:center;">
+    <div style="font-size:.8rem;color:var(--accent2);margin-bottom:.6rem;">🔒 SENHA DO DEVTOOLS</div>
+    <input id="devPassInput" type="password" placeholder="Senha" style="width:100%;padding:.5rem;margin-bottom:.6rem;border-radius:8px;border:1px solid var(--border);background:#031a0c;color:#fff;font-family:inherit;font-size:.65rem;text-align:center;"/>
+    <div style="display:flex;gap:.4rem;">
+      <button onclick="checkDevPassword()" style="flex:1;font-family:inherit;font-size:.65rem;padding:.45rem;background:linear-gradient(135deg,#0f5c30,#3ddc6f);color:#04220f;border:none;border-radius:8px;cursor:pointer;">ENTRAR</button>
+      <button onclick="document.getElementById('devPassOv').remove()" style="flex:1;font-family:inherit;font-size:.65rem;padding:.45rem;background:#1a1a1a;color:#aaa;border:1px solid #444;border-radius:8px;cursor:pointer;">CANCELAR</button>
+    </div>
+  </div>`;
+  document.body.appendChild(ov);
+  const inp=document.getElementById('devPassInput');
+  if(inp){
+    inp.focus();
+    inp.addEventListener('keydown',e=>{if(e.key==='Enter')checkDevPassword();});
+  }
+}
+function checkDevPassword(){
+  const pass=document.getElementById('devPassInput')?.value||'';
+  document.getElementById('devPassOv')?.remove();
+  if(pass!==DEV_PASSWORD){toast('❌ Senha errada!','red');return;}
+  showDevToolsPanel();
+}
+function showDevToolsPanel(){
+  if(document.getElementById('devToolsOv'))return;
+  const ov=document.createElement('div');
+  ov.id='devToolsOv';
+  ov.style.cssText='position:fixed;inset:0;z-index:2500;background:#000000ee;display:flex;align-items:center;justify-content:center;padding:1rem;';
+  function sec(title){return `<div style="font-size:.62rem;color:var(--yellow);margin:.7rem 0 .3rem;text-align:center;letter-spacing:1px;">${title}</div>`;}
+  function btn(label,fn,color='#0f5c30,#3ddc6f',txt='#04220f'){return `<button onclick="${fn}" style="width:100%;margin-bottom:.3rem;font-family:inherit;font-size:.6rem;padding:.4rem;background:linear-gradient(135deg,${color});color:${txt};border:none;border-radius:8px;cursor:pointer;">${label}</button>`;}
+  ov.innerHTML=`<div style="background:#04220f;border:3px solid var(--accent);border-radius:16px;padding:1rem;max-width:360px;width:100%;max-height:88vh;overflow:auto;">
+    <div style="text-align:center;font-size:.85rem;color:var(--accent2);margin-bottom:.5rem;">🛠️ DEVTOOLS</div>
+
+    ${sec('💰 PONTOS E RECURSOS')}
+    <input id="devPtsInput" type="number" placeholder="Quantidade de pontos" style="width:100%;padding:.4rem;margin-bottom:.4rem;border-radius:8px;border:1px solid var(--border);background:#031a0c;color:#fff;font-family:inherit;font-size:.62rem;"/>
+    ${btn('💰 DAR PONTOS','devGivePoints()')}
+    ${btn('💸 +1K','devGiveFixed(1000)')}${btn('💸 +1M','devGiveFixed(1e6)')}
+    ${btn('💸 +1B','devGiveFixed(1e9)')}${btn('💸 +1T','devGiveFixed(1e12)')}
+    ${btn('🍃 +10 Folhas','devGivePrestige(10)')}${btn('🍃 +100 Folhas','devGivePrestige(100)')}
+    ${btn('👆 +1.000 Pts/Clique','devAddClick(1000)')}
+    ${btn('⏱️ +1.000 Pts/Seg','devAddAuto(1000)')}
+    ${btn('✖️ Multiplicador ×10','devAddMult(10)')}
+    ${btn('🔥 Zerar Combo Máximo','devSetCombo(0)')}
+    ${btn('🔥 Combo Máximo = 100','devSetCombo(100)')}
+
+    ${sec('🌳 BOOSTS E CONTEÚDO')}
+    ${btn('🌳 DESBLOQUEAR TODOS OS BOOSTS','devUnlockAllBoosts()')}
+    ${btn('🔒 BLOQUEAR TODOS DE NOVO','devLockAllBoosts()','5c0f0f,#cc3333','#fff')}
+    ${btn('🎨 DESBLOQUEAR TODAS AS SKINS','devUnlockAllSkins()')}
+    ${btn('🛒 +10 Compras Diárias','devAddBuys(10)')}
+
+    ${sec('🏆 CONQUISTAS E DIÁRIAS')}
+    ${btn('🏆 DESBLOQUEAR TODAS CONQUISTAS','devUnlockAllMS()')}
+    ${btn('🔓 RESETAR CONQUISTAS','devResetMS()','5c0f0f,#cc3333','#fff')}
+    ${btn('📅 COMPLETAR DIÁRIAS DE HOJE','devCompleteDaily()')}
+    ${btn('🔄 SORTEAR NOVAS DIÁRIAS','devRerollDaily()')}
+
+    ${sec('🌦️ CLIMA, MODOS E EVENTOS')}
+    ${btn('☀️ Forçar Ensolarado','devSetWeather("sol")')}
+    ${btn('🌧️ Forçar Chuvoso','devSetWeather("chuva")')}
+    ${btn('❄️ Forçar Nevando','devSetWeather("neve")')}
+    ${btn('🌈 Forçar Arco-íris','devSetWeather("arco")')}
+    ${btn('🎉 Forçar Evento Sazonal','devForceSeasonalEvent()')}
+    ${btn('🎭 Desativar Modo Atual','devClearMode()')}
+
+    ${sec('🔊 SOM')}
+    ${btn('🔊 Testar Todos os Sons','devTestAllSounds()')}
+    ${btn('🔇 Mudo (0%)','setVolume(0);devSyncVolSlider();')}
+    ${btn('🔊 Volume Máximo (100%)','setVolume(1);devSyncVolSlider();')}
+
+    ${sec('👥 CONTA E SOCIAL')}
+    ${btn('🌍 Salvar no Ranking Agora','saveScoreToFirebase()')}
+    ${btn('🎁 Simular Presente Recebido','devSimulateGiftReceived()')}
+    ${btn('🔓 Resetar Limite de Presente Diário','devResetGiftLimit()')}
+
+    ${sec('🤖 ANTI-AUTOCLICKER')}
+    ${btn('🚫 Testar Tela de Ban Nível 1','showBanScreen(BAN_LEVELS[1],true)','5c0f0f,#cc3333','#fff')}
+    ${btn('☠️ Testar Tela de Ban Nível 2','showBanScreen(BAN_LEVELS[2],true)','5c0f0f,#cc3333','#fff')}
+    ${btn('💀 Testar Tela de Ban Nível 3','showBanScreen(BAN_LEVELS[3],true)','5c0f0f,#cc3333','#fff')}
+    ${btn('🔄 Resetar Contador de Bans','devResetBanCount()')}
+
+    ${sec('⚙️ SISTEMA')}
+    ${btn('💾 Exportar Save (copiar)','devExportSave()')}
+    ${btn('📋 Importar Save (colar)','devImportSave()')}
+    ${btn('📊 Mostrar Estado Completo','devShowFullState()')}
+    ${btn('🗑️ RESETAR JOGO INTEIRO','devResetGame()','5c0f0f,#cc3333','#fff')}
+
+    <button onclick="document.getElementById('devToolsOv').remove()" style="width:100%;margin-top:.4rem;font-family:inherit;font-size:.65rem;padding:.45rem;background:#1a1a1a;color:#aaa;border:1px solid #444;border-radius:8px;cursor:pointer;">FECHAR</button>
+  </div>`;
+  document.body.appendChild(ov);
+}
+function devSyncVolSlider(){const sl=document.getElementById('volSlider');if(sl){sl.value=Math.round(masterVolume*100);}const lbl=document.getElementById('volLabel');if(lbl)lbl.textContent=Math.round(masterVolume*100)+'%';}
+function devGivePoints(){
+  const v=parseFloat(document.getElementById('devPtsInput')?.value)||0;
+  if(!v)return;
+  score+=v;totalEarned+=v;updateUI();checkMS();checkPrestige();
+  sfx('devtool');toast('💰 +'+fmt(v)+' pts (devtools)','gold');
+}
+function devGiveFixed(v){score+=v;totalEarned+=v;updateUI();checkMS();checkPrestige();sfx('devtool');toast('💰 +'+fmt(v)+' pts (devtools)','gold');}
+function devAddClick(v){clickPower+=v;updateUI();sfx('devtool');toast('👆 +'+fmt(v)+' pts/clique (devtools)','gold');}
+function devAddAuto(v){autoPerSec+=v;updateUI();sfx('devtool');toast('⏱️ +'+fmt(v)+' pts/seg (devtools)','gold');}
+function devAddMult(v){globalMult*=v;updateUI();sfx('devtool');toast('✖️ Mult ×'+v+' (devtools)','gold');}
+function devSetCombo(v){maxComboEver=v;checkMS();renderMS();sfx('devtool');toast('🔥 Combo máx = '+v+' (devtools)','gold');}
+function devUnlockAllBoosts(){
+  BOOSTS.forEach(b=>{if(!owned.has(b.id)){owned.add(b.id);try{b.eff();}catch(e){}}});
+  updateUI();renderBoosts();checkMS();sfx('devtool');
+  toast('🌳 Todos os boosts desbloqueados! (devtools)','gold');
+}
+function devLockAllBoosts(){owned.clear();renderBoosts();sfx('devtool');toast('🔒 Boosts bloqueados de novo (devtools)','gold');}
+function devUnlockAllSkins(){SKINS.forEach(s=>{s.req=0;s.achv=null;});renderSkinsList();sfx('devtool');toast('🎨 Todas as skins liberadas! (devtools)','gold');}
+function devAddBuys(v){dailyBuys+=v;checkDaily();sfx('devtool');toast('🛒 +'+v+' compras diárias (devtools)','gold');}
+function devUnlockAllMS(){MS.forEach(m=>{if(!dMS.has(m.id)){dMS.add(m.id);try{m.bonus();}catch(e){}}});updateUI();renderMS();sfx('devtool');toast('🏆 Todas as conquistas desbloqueadas! (devtools)','gold');}
+function devResetMS(){dMS.clear();renderMS();sfx('devtool');toast('🔓 Conquistas resetadas (devtools)','gold');}
+function devCompleteDaily(){getDailyMissions().forEach(m=>{if(!dailyState.done.includes(m.id)){dailyState.done.push(m.id);try{m.rew();}catch(e){}}});localStorage.setItem('cmnDaily',JSON.stringify(dailyState));updateUI();renderDailyList();sfx('devtool');toast('📅 Diárias completas! (devtools)','gold');}
+function devRerollDaily(){localStorage.removeItem('cmnDaily');dailyState=null;initDaily();renderDailyList();sfx('devtool');toast('🔄 Novas diárias sorteadas! (devtools)','gold');}
+function devGivePrestige(v){prestigeStars+=v;updateUI();renderPres();sfx('devtool');toast('🍃 +'+v+' folhas! (devtools)','gold');}
+function devSetWeather(id){const w=WEATHER_TYPES.find(x=>x.id===id);if(!w)return;currentWeather=w;weatherNextAt=Date.now()+5*60000;if(!activeMode)document.body.style.background=w.bg;renderWeatherWidget();sfx('devtool');toast(w.icon+' Clima forçado: '+w.name+' (devtools)','gold');}
+function devForceSeasonalEvent(){seasonalNextAt=Date.now();tickSeasonalEvents();sfx('devtool');}
+function devClearMode(){activeMode='';localStorage.setItem('cmnMode','');applyModeVisual();renderModesList();updateUI();sfx('devtool');toast('🎭 Modo desativado (devtools)','gold');}
+function devTestAllSounds(){
+  const names=['click','buy','achievement','error','prestige','skin','mode','weather','rareWeather','gift','friend','daily','devtool','tab','ban','trade'];
+  names.forEach((n,i)=>setTimeout(()=>sfx(n),i*500));
+  toast('🔊 Testando '+names.length+' sons, um por vez...','gold');
+}
+function devSimulateGiftReceived(){score+=5000;totalEarned+=5000;updateUI();sfx('gift');toast('🎁 Presente simulado recebido! +5.000 pts (devtools)','gold');}
+function devResetGiftLimit(){localStorage.removeItem('cmnLastGiftDate');sfx('devtool');toast('🔓 Limite de presente resetado (devtools)','gold');}
+function devResetBanCount(){banCountAC=0;localStorage.setItem('cmnBanCount','0');sfx('devtool');toast('🔄 Contador de bans resetado (devtools)','gold');}
+function devExportSave(){
+  const data=JSON.stringify(buildSaveData());
+  navigator.clipboard?.writeText(data).then(()=>toast('💾 Save copiado pra área de transferência!','gold')).catch(()=>{
+    prompt('Copie o save aqui:',data);
+  });
+}
+function devImportSave(){
+  const raw=prompt('Cole o save aqui:');
+  if(!raw)return;
+  try{localStorage.setItem(SAVE_KEY,raw);toast('📋 Save importado! Recarregando...','gold');setTimeout(()=>location.reload(),1000);}
+  catch(e){toast('❌ Save inválido!','red');}
+}
+function devShowFullState(){
+  const s=buildSaveData();
+  alert('ESTADO ATUAL:\\n'+JSON.stringify(s,null,1).slice(0,1500));
+}
+function devResetGame(){
+  if(!confirm('Resetar TUDO? Não tem volta!'))return;
+  localStorage.clear();location.reload();
+}
+
+// ══════════════════════════════════════════════════════
+// 🤖 ASSISTENTE VIRTUAL
+// ══════════════════════════════════════════════════════
+function getAssistantTip(){
+  if(score<10)return '🌱 Olá! Eu sou seu assistente da natureza. Clique no botão verde pra começar a cuidar da Terra!';
+  const affordable=BOOSTS.filter(b=>!owned.has(b.id)&&score>=b.cost).sort((a,b)=>a.cost-b.cost);
+  if(affordable.length)return '💡 Você já pode comprar "'+affordable[affordable.length-1].name+'"! Vai lá na aba Boosts.';
+  const cheapest=BOOSTS.filter(b=>!owned.has(b.id)).sort((a,b)=>a.cost-b.cost)[0];
+  if(cheapest)return '🌿 Falta '+fmt(cheapest.cost-score)+' pontos pra comprar "'+cheapest.name+'". Continue clicando!';
+  if(totalEarned>=PREQ())return '🍃 Você já pode Reflorestar! Isso te dá folhas permanentes que multiplicam tudo pra sempre.';
+  if(maxComboEver<10)return '🔥 Dica: clique rápido (menos de meio segundo entre cliques) pra fazer combo e ganhar bônus!';
+  if(!activeMode)return '🎭 Já tentou ativar um Modo na aba Modos? Cada um dá um bônus diferente!';
+  return '🌍 Você está cuidando muito bem da Terra! Continue assim. 💚';
+}
+function openAssistant(){
+  let ov=document.getElementById('assistantOv');
+  if(ov){ov.remove();return;}
+  ov=document.createElement('div');
+  ov.id='assistantOv';
+  ov.style.cssText='position:fixed;bottom:80px;right:14px;z-index:1500;background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:.8rem;max-width:240px;font-size:.62rem;color:#dfffe8;box-shadow:0 0 20px var(--glow1);';
+  ov.innerHTML=`<div style="font-size:.65rem;color:var(--accent2);margin-bottom:.4rem;">🤖 Assistente</div><div>${getAssistantTip()}</div>`;
+  document.body.appendChild(ov);
+  setTimeout(()=>{if(document.getElementById('assistantOv'))ov.remove();},8000);
+}
+
+// ══════════════════════════════════════════════════════
+// 🔊 SONS
+// ══════════════════════════════════════════════════════
+let _audioCtx=null;
+let masterVolume=parseFloat(localStorage.getItem('cmnVolume')||'0.7');
+function tone(freq,dur,vol=0.1,type='sine',delay=0){
+  try{
+    if(!_audioCtx)_audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+    const t0=_audioCtx.currentTime+delay;
+    const osc=_audioCtx.createOscillator();const gain=_audioCtx.createGain();
+    osc.frequency.value=freq;osc.type=type;
+    gain.gain.setValueAtTime(vol*masterVolume,t0);
+    gain.gain.exponentialRampToValueAtTime(.001,t0+dur);
+    osc.connect(gain);gain.connect(_audioCtx.destination);
+    osc.start(t0);osc.stop(t0+dur);
+  }catch(e){}
+}
+function toneSweep(f1,f2,dur,vol=0.1,delay=0){
+  try{
+    if(!_audioCtx)_audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+    const t0=_audioCtx.currentTime+delay;
+    const osc=_audioCtx.createOscillator();const gain=_audioCtx.createGain();
+    osc.type='sine';osc.frequency.setValueAtTime(f1,t0);osc.frequency.exponentialRampToValueAtTime(f2,t0+dur);
+    gain.gain.setValueAtTime(vol*masterVolume,t0);
+    gain.gain.exponentialRampToValueAtTime(.001,t0+dur);
+    osc.connect(gain);gain.connect(_audioCtx.destination);
+    osc.start(t0);osc.stop(t0+dur);
+  }catch(e){}
+}
+function noise(dur,vol=0.1,filterFreq=1000,delay=0){
+  try{
+    if(!_audioCtx)_audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+    const t0=_audioCtx.currentTime+delay;
+    const bufSize=_audioCtx.sampleRate*dur;
+    const buf=_audioCtx.createBuffer(1,bufSize,_audioCtx.sampleRate);
+    const data=buf.getChannelData(0);
+    for(let i=0;i<bufSize;i++)data[i]=Math.random()*2-1;
+    const src=_audioCtx.createBufferSource();src.buffer=buf;
+    const filt=_audioCtx.createBiquadFilter();filt.type='lowpass';filt.frequency.value=filterFreq;
+    const gain=_audioCtx.createGain();
+    gain.gain.setValueAtTime(vol*masterVolume,t0);
+    gain.gain.exponentialRampToValueAtTime(.001,t0+dur);
+    src.connect(filt);filt.connect(gain);gain.connect(_audioCtx.destination);
+    src.start(t0);
+  }catch(e){}
+}
+function setVolume(v){
+  masterVolume=Math.max(0,Math.min(1,v));
+  localStorage.setItem('cmnVolume',String(masterVolume));
+  const lbl=document.getElementById('volLabel');if(lbl)lbl.textContent=Math.round(masterVolume*100)+'%';
+}
+function sfx(name){
+  if(masterVolume<=0)return;
+  // sons inspirados em sons reais da natureza, sintetizados
+  if(name==='click')noise(.04,.05,1800);                                   // folha/grama
+  else if(name==='buy'){tone(523,.1,.07);tone(659,.12,.06,'sine',.05);}     // sininho de pássaro
+  else if(name==='achievement'){tone(659,.1,.08);tone(880,.14,.08,'sine',.09);tone(1046,.18,.08,'sine',.18);} // pássaro cantando
+  else if(name==='error')toneSweep(300,120,.25,.08);                       // grunhido
+  else if(name==='prestige'){[392,523,659,784,1046].forEach((f,i)=>tone(f,.2,.06,'sine',i*.08));} // harpa natural
+  else if(name==='skin')tone(740,.08,.06,'triangle');                      // cintilar
+  else if(name==='mode')toneSweep(200,500,.3,.07);                         // vento
+  else if(name==='weather')noise(.6,.04,400);                              // chuva leve
+  else if(name==='rareWeather'){noise(.5,.05,2500);tone(1200,.3,.05,'sine',.1);} // arco-íris brilhante
+  else if(name==='gift')tone(880,.1,.08,'sine');                           // sino suave
+  else if(name==='friend')tone(600,.1,.07);
+  else if(name==='daily')tone(700,.1,.07,'sine');
+  else if(name==='devtool')tone(440,.06,.05,'square');
+  else if(name==='tab')tone(350,.04,.04);
+  else if(name==='ban')toneSweep(400,80,.5,.1);
+  else if(name==='trade')toneSweep(500,900,.25,.08);
+  else if(name==='water')noise(.3,.06,800);
+  else if(name==='wind')noise(.5,.05,300);
+  else if(name==='leaf')tone(900,.03,.04,'triangle');
+}
+
+
+// ══════════════════════════════════════════════════════
+function updateUI(){
+  const m=gm();
+  const cb=getModeClickBonus(),ab=getModeAutoBonus(),wm=getWeatherMult();
+  document.getElementById('sScore').textContent=fmt(score);
+  document.getElementById('sCps').textContent=fmt(Math.floor(autoPerSec*m*tempMult*ab*wm));
+  document.getElementById('sClk').textContent=fmt(Math.floor(clickPower*m*tempMult*cb*wm));
+  document.getElementById('bpc').textContent='+'+fmt(Math.floor(clickPower*m*tempMult*cb*wm));
+  document.getElementById('cpsLine').textContent='+'+fmt(Math.floor(clickPower*m*tempMult*cb*wm))+'/clique'+(autoPerSec>0?' · +'+fmt(Math.floor(autoPerSec*m*tempMult*ab*wm))+'/seg':'');
+}
+setInterval(()=>{
+  if(autoPerSec>0){
+    const p=Math.floor(autoPerSec*gm()*tempMult*getModeAutoBonus()*getWeatherMult());
+    score+=p;totalEarned+=p;dailyScoreEarned+=p;
+    updateUI();checkMS();checkPrestige();
+  }
+  checkDaily();
+  tickWeather();
+},1000);
+
+// ══════════════════════════════════════════════════════
+// SALVAR / CARREGAR (localStorage, jogo independente)
+// ══════════════════════════════════════════════════════
+const SAVE_KEY='cmnLocalSave';
+function buildSaveData(){
+  return{score,totalClicks,totalEarned,clickPower,autoPerSec,globalMult,
+    prestigeCount,prestigeStars,maxComboEver,dailyBuys,
+    owned:Array.from(owned),done:Array.from(dMS),savedAt:Date.now()};
+}
+function saveGame(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(buildSaveData()));}catch(e){}}
+function restoreGame(){
+  let raw;try{raw=localStorage.getItem(SAVE_KEY);}catch(e){return;}
+  if(!raw)return;
+  let data;try{data=JSON.parse(raw);}catch(e){return;}
+  if(!data||typeof data.score!=='number')return;
+  score=data.score||0;totalClicks=data.totalClicks||0;totalEarned=data.totalEarned||0;
+  clickPower=data.clickPower||1;autoPerSec=data.autoPerSec||0;globalMult=data.globalMult||1;
+  prestigeCount=data.prestigeCount||0;prestigeStars=data.prestigeStars||0;
+  maxComboEver=data.maxComboEver||0;dailyBuys=data.dailyBuys||0;
+  (data.owned||[]).forEach(id=>owned.add(id));
+  (data.done||[]).forEach(id=>dMS.add(id));
+  const elapsedSec=Math.max(0,Math.floor((Date.now()-(data.savedAt||Date.now()))/1000));
+  if(elapsedSec>30&&autoPerSec>0){
+    const capped=Math.min(elapsedSec,4*3600);
+    const earned=Math.floor(autoPerSec*gm()*capped);
+    if(earned>0){score+=earned;totalEarned+=earned;
+      setTimeout(()=>toast('🌙 Enquanto você esteve fora: +'+fmt(earned)+' pts!','green'),500);}
+  }
+}
+setInterval(saveGame,10000);
+window.addEventListener('beforeunload',saveGame);
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')saveGame();});
+
+// ══════════════════════════════════════════════════════
+// 🍃 WALLPAPER ANIMADO (folhas caindo)
+// ══════════════════════════════════════════════════════
+(function(){
+  const c=document.getElementById('wpCanvas');if(!c)return;
+  const ctx=c.getContext('2d');
+  function resize(){c.width=window.innerWidth;c.height=window.innerHeight;}
+  resize();window.addEventListener('resize',resize);
+  const leaves=['🍃','🌿','🍂'];
+  const parts=[];
+  for(let i=0;i<22;i++){
+    parts.push({
+      x:Math.random()*c.width,y:Math.random()*c.height,
+      s:10+Math.random()*14,spd:.3+Math.random()*.6,
+      drift:Math.random()*2-1,rot:Math.random()*360,rotSpd:(Math.random()*2-1)*.6,
+      emoji:leaves[Math.floor(Math.random()*leaves.length)],op:.25+Math.random()*.3
+    });
+  }
+  function loop(){
+    ctx.clearRect(0,0,c.width,c.height);
+    parts.forEach(p=>{
+      p.y+=p.spd;p.x+=Math.sin(p.y*0.01)*p.drift;p.rot+=p.rotSpd;
+      if(p.y>c.height+20){p.y=-20;p.x=Math.random()*c.width;}
+      ctx.save();
+      ctx.globalAlpha=p.op;
+      ctx.translate(p.x,p.y);ctx.rotate(p.rot*Math.PI/180);
+      ctx.font=p.s+'px sans-serif';
+      ctx.fillText(p.emoji,0,0);
+      ctx.restore();
+    });
+    requestAnimationFrame(loop);
+  }
+  loop();
+})();
+
+// ══════════════════════════════════════════════════════
+// INICIALIZAÇÃO
+// ══════════════════════════════════════════════════════
+restoreGame();
+applyModeVisual();
+applySkinVisual();
+(function(){const sl=document.getElementById('volSlider');if(sl){sl.value=Math.round(masterVolume*100);const lbl=document.getElementById('volLabel');if(lbl)lbl.textContent=Math.round(masterVolume*100)+'%';}})();
+if(!activeMode)document.body.style.background=currentWeather.bg;
+initDaily();
+renderBoosts();renderMS();renderDailyList();renderPres();
+startDailyTimer();
+tickSeasonalEvents();setInterval(tickSeasonalEvents,1000);
+resumeBanIfActive();
+updateUI();checkPrestige();
+</script>
+</body>
+</html>

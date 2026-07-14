@@ -151,7 +151,7 @@ footer{text-align:center;font-size:.5rem;color:#2f6b48;margin-top:1.4rem;}
   <div id="anivStatus" style="font-size:.52rem;color:#ff88cc;margin-top:.3rem;"></div>
 </div>
 <div style="text-align:center;margin-bottom:.3rem;">
-  <span id="rodaFortBtn2" onclick="openRodaFortuna()" style="cursor:pointer;font-size:.62rem;background:#1a1000;border:1px solid #ffd700;border-radius:8px;padding:.15rem .5rem;color:#ffd700;margin-right:.3rem;">🎡 RODA</span><span id="roletaHudBtn" onclick="openRoleta()" style="cursor:pointer;font-size:.62rem;background:#1a3a1f;border:1px solid var(--border);border-radius:8px;padding:.15rem .5rem;color:#666;">🎡 ROLETA</span>
+  <span onclick="toggleMusica()" style="cursor:pointer;font-size:.62rem;background:#0a001a;border:1px solid #8844ff;border-radius:8px;padding:.15rem .5rem;color:#8844ff;margin-right:.2rem;" title="Música Tema">🎶</span><span id="rodaFortBtn2" onclick="openRodaFortuna()" style="cursor:pointer;font-size:.62rem;background:#1a1000;border:1px solid #ffd700;border-radius:8px;padding:.15rem .5rem;color:#ffd700;margin-right:.3rem;">🎡 RODA</span><span id="roletaHudBtn" onclick="openRoleta()" style="cursor:pointer;font-size:.62rem;background:#1a3a1f;border:1px solid var(--border);border-radius:8px;padding:.15rem .5rem;color:#666;">🎡 ROLETA</span>
 </div>
 <div style="display:flex;align-items:center;gap:.5rem;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:.3rem .6rem;margin-bottom:.5rem;font-size:.6rem;">
   <span>🔊</span>
@@ -211,6 +211,11 @@ footer{text-align:center;font-size:.5rem;color:#2f6b48;margin-top:1.4rem;}
   <button class="tab" onclick="showTab('placar',this)" id="t-placar" style="color:#ffd700;border-color:#665500;">🏆 PLACAR</button>
   <button class="tab" onclick="showTab('porao',this)" id="t-porao" style="color:#aaaaff;border-color:#222266;">🕺 PORÃO</button>
   <button class="tab" onclick="showTab('poster',this)" id="t-poster" style="color:#88ffcc;border-color:#006644;">🖼️ POSTER</button>
+  <button class="tab" onclick="showTab('labpets',this)" id="t-labpets" style="color:#ff88ff;border-color:#660066;">🔬 LAB PETS</button>
+  <button class="tab" onclick="showTab('biblia',this)" id="t-biblia" style="color:#ffdd88;border-color:#664400;">📚 BÍBLIA</button>
+  <button class="tab" onclick="showTab('quests',this)" id="t-quests" style="color:#88ddff;border-color:#004466;">📜 QUESTS</button>
+  <button class="tab" onclick="showTab('lojadia',this)" id="t-lojadia" style="color:#ffaaff;border-color:#440066;">🛒 LOJA DO DIA</button>
+  <button class="tab" onclick="showTab('torreboosts',this)" id="t-torreboosts" style="color:#ffcc44;border-color:#664400;">🏛️ TORRE</button>
   <button class="tab" onclick="showTab('presentes',this)" id="t-presentes" style="color:#ffd24d;border-color:#664400;">🎀 PRESENTES</button>
   <button class="tab" onclick="showTab('ranks',this)" id="t-ranks" style="color:#cc8833;border-color:#442200;">🏅 RANK</button>
   <button class="tab" onclick="showTab('rank',this)" id="t-rank">🌍 RANKING</button>
@@ -593,6 +598,31 @@ footer{text-align:center;font-size:.5rem;color:#2f6b48;margin-top:1.4rem;}
   <div style="font-size:.52rem;color:var(--sub);text-align:center;margin-bottom:.5rem;">Gere um poster com seu progresso pra compartilhar!</div>
   <div id="posterPanel"></div>
 </div>
+<div class="tpanel" id="tab-labpets">
+  <div class="stitle" style="color:#ff88ff;">🔬 LABORATÓRIO DE PETS</div>
+  <div style="font-size:.52rem;color:var(--sub);text-align:center;margin-bottom:.5rem;">Combine 2 pets pra criar um híbrido com poderes de ambos!</div>
+  <div id="labpetsPanel"></div>
+</div>
+<div class="tpanel" id="tab-biblia">
+  <div class="stitle" style="color:#ffdd88;">📚 BÍBLIA DA NATUREZA</div>
+  <div style="font-size:.52rem;color:var(--sub);text-align:center;margin-bottom:.5rem;">Enciclopédia completa de tudo no jogo!</div>
+  <div id="bibliaPanel"></div>
+</div>
+<div class="tpanel" id="tab-quests">
+  <div class="stitle" style="color:#88ddff;">📜 SISTEMA DE QUESTS</div>
+  <div style="font-size:.52rem;color:var(--sub);text-align:center;margin-bottom:.5rem;">Missões épicas que levam dias pra completar!</div>
+  <div id="questsPanel"></div>
+</div>
+<div class="tpanel" id="tab-lojadia">
+  <div class="stitle" style="color:#ffaaff;">🛒 LOJA DO DIA</div>
+  <div style="font-size:.52rem;color:var(--sub);text-align:center;margin-bottom:.5rem;">3 itens novos todo dia — somem à meia-noite!</div>
+  <div id="lojadiaPanel"></div>
+</div>
+<div class="tpanel" id="tab-torreboosts">
+  <div class="stitle" style="color:#ffcc44;">🏛️ TORRE DE BOOSTS</div>
+  <div style="font-size:.52rem;color:var(--sub);text-align:center;margin-bottom:.5rem;">Visualização de todos os seus boosts comprados!</div>
+  <div id="torreboostsPanel"></div>
+</div>
 
 <div style="margin-top:1.4rem;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:.9rem;font-size:.58rem;color:#7cb893;text-align:center;line-height:1.9;">
   <div style="color:var(--accent2);font-size:.7rem;margin-bottom:.4rem;letter-spacing:1px;">✨ CRÉDITOS ✨</div>
@@ -730,6 +760,11 @@ function showTab(name,btn){
   if(name==='porao')renderPorao();
   if(name==='minigame')renderSnakeGame();
   if(name==='poster')renderPoster();
+  if(name==='labpets')renderLabPets();
+  if(name==='biblia')renderBiblia();
+  if(name==='quests')renderQuests();
+  if(name==='lojadia')renderLojaDia();
+  if(name==='torreboosts')renderTorreBoosts();
   if(name==='speedrun')renderSpeedrun();
 }
 
@@ -1764,6 +1799,10 @@ const MODES=[
   {id:'xenon',     name:'X — MODO XÊNON',       icon:'🔵',desc:'Mult ×6, visual azul elétrico',          bg:'radial-gradient(circle,#000830,#000208 70%)',mult:6},
   {id:'yoga',      name:'Y — MODO YOGA',        icon:'🧘',desc:'Pontos crescem sozinhos +5%/seg',        bg:'radial-gradient(circle,#181018,#060406 70%)',mult:1,autoBonus:1.5},
   {id:'zen',       name:'Z — MODO ZEN',         icon:'☮️',desc:'Mult ×10, tela minimalista e calma',    bg:'radial-gradient(circle,#080808,#020202 70%)',mult:10},
+  {id:'neon',      name:'💡 MODO NEON',          icon:'💡',desc:'Visual neon brilhante! Ativar via botão.',    bg:'radial-gradient(circle,#001100,#000800 70%)',mult:1.5},
+  {id:'pixel',     name:'🎨 PIXEL ART',           icon:'🎨',desc:'Visual 8-bit retro!',                         bg:'radial-gradient(circle,#0a0a00,#050500 70%)',mult:1},
+  {id:'retro',     name:'🕺 MODO RETRO',          icon:'🕺',desc:'Visual anos 90!',                              bg:'radial-gradient(circle,#000800,#000200 70%)',mult:1},
+  {id:'agua_mode', name:'💧 MODO ÁGUA',           icon:'💧',desc:'Tela submersa com bolhas!',                   bg:'radial-gradient(circle,#002244,#000811 70%)',mult:1.5},
 ];
 function getModeMult(){const m=MODES.find(x=>x.id===activeMode);return m?m.mult||1:1;}
 function getModeAutoBonus(){const m=MODES.find(x=>x.id===activeMode);return m?m.autoBonus||1:1;}
@@ -5021,6 +5060,18 @@ function alimentarDragao(){
 
 // Adiciona novos pets ao sistema
 PETS.push(
+  {id:'pet_fada',name:'FADA',emoji:'🧚',cost:5e9,auto:2e6},
+  {id:'pet_lobo',name:'LOBO DA LUA',emoji:'🐺',cost:1e10,auto:1e7},
+  {id:'pet_sereia2',name:'SEREIA V2',emoji:'🧜',cost:5e10,auto:5e7},
+  {id:'pet_golem',name:'GOLEM',emoji:'🗿',cost:2e10,auto:3e7},
+  {id:'pet_gato',name:'GATO CÓSMICO',emoji:'🐈',cost:8e10,auto:8e7},
+  {id:'pet_fenix',name:'FÊNIX',emoji:'🔥',cost:3e10,auto:2e7},
+  {id:'pet_polvo',name:'POLVO',emoji:'🐙',cost:6e10,auto:6e7},
+  {id:'pet_dinossauro',name:'DINOSSAURO',emoji:'🦕',cost:4e10,auto:4e7},
+  {id:'pet_robot',name:'ROBOT VERDE',emoji:'🤖',cost:5e10,auto:5e7},
+  {id:'pet_baleia',name:'BALEIA',emoji:'🐳',cost:7e10,auto:7e7},
+  {id:'pet_borb_dourada',name:'BORBOLETA DOURADA',emoji:'🦋',cost:4e10,auto:4e7},
+  {id:'pet_borb_cosmica',name:'BORBOLETA CÓSMICA',emoji:'✨',cost:1e11,auto:1e8},
   {id:'pet_unicornio',name:'UNICÓRNIO',emoji:'🦄',cost:1e11,auto:0},
   {id:'pet_tartaruga',name:'TARTARUGA ESPACIAL',emoji:'🐢',cost:3e10,auto:1e6},
   {id:'pet_leao',   name:'LEÃO DA SAVANA', emoji:'🦁',cost:5e9, auto:50000},
@@ -8724,6 +8775,635 @@ function abrirPainelCriador(){
   ov.addEventListener('click',e=>{if(e.target===ov)ov.remove();});
   document.body.appendChild(ov);sfx('prestige');launchConfetti();
 }
+
+// ══════════════════════════════════════════════════════
+// 💎 NOVAS SEMENTES (adicionadas ao SEED_TYPES depois)
+// ══════════════════════════════════════════════════════
+// sd_diamante, sd_cronica, sd_viral, sd_noturna, sd_vento,
+// sd_relampao, sd_arcocristao, sd_infinita, sd_fossilizada
+// (adicionadas no array SEED_TYPES abaixo)
+
+// ══════════════════════════════════════════════════════
+// 🐾 NOVOS PETS
+// ══════════════════════════════════════════════════════
+// pet_fada, pet_lobo, pet_sereia2, pet_golem, etc.
+// (adicionados ao array PETS abaixo)
+
+// ══════════════════════════════════════════════════════
+// ⏰ BÔNUS DO SOL (12h-14h)
+// ══════════════════════════════════════════════════════
+function getBonusSol(){
+  const h=new Date().getHours();
+  return(h>=12&&h<14)?2:1;
+}
+// já integrado no doClick via getModeClickBonus (override abaixo)
+
+// ══════════════════════════════════════════════════════
+// 🎶 MÚSICA TEMA
+// ══════════════════════════════════════════════════════
+let musicaTema=null;
+function toggleMusica(){
+  try{
+    if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+    if(musicaTema){clearInterval(musicaTema);musicaTema=null;toast('🎶 Música desligada','green');return;}
+    const notas=[261,293,329,349,392,440,493,523];
+    let i=0;
+    musicaTema=setInterval(()=>{
+      const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+      o.type='sine';o.frequency.value=notas[i%notas.length];
+      g.gain.setValueAtTime(.08,audioCtx.currentTime);
+      g.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+.4);
+      o.connect(g);g.connect(audioCtx.destination);
+      o.start();o.stop(audioCtx.currentTime+.45);
+      i++;
+    },450);
+    toast('🎶 Música tema ativada!','green');
+  }catch(e){}
+}
+
+// ══════════════════════════════════════════════════════
+// 🌪️ MODO TORNADO
+// ══════════════════════════════════════════════════════
+function ativarTornado(){
+  const btn=document.getElementById('bigBtn');if(!btn)return;
+  const orig=btn.style.cssText;
+  btn.style.animation='tornadoSpin .3s linear infinite';
+  if(!document.getElementById('tornadoStyle')){const s=document.createElement('style');s.id='tornadoStyle';s.textContent='@keyframes tornadoSpin{from{transform:rotate(0deg) scale(1)}50%{transform:rotate(180deg) scale(1.3)}to{transform:rotate(360deg) scale(1)}}';document.head.appendChild(s);}
+  const origClick=clickPower;clickPower*=8;updateUI();
+  toast('🌪️ MODO TORNADO! Click ×8 por 20 segundos!','rainbow');sfx('prestige');
+  setTimeout(()=>{btn.style.animation='';clickPower=origClick;updateUI();toast('🌪️ Tornado passou.','green');},20000);
+}
+
+// ══════════════════════════════════════════════════════
+// 💡 MODO NEON
+// ══════════════════════════════════════════════════════
+let modoNeon=localStorage.getItem('cmnNeon')==='1';
+function toggleNeon(){
+  modoNeon=!modoNeon;localStorage.setItem('cmnNeon',modoNeon?'1':'0');
+  let s=document.getElementById('neonStyle');
+  if(!s){s=document.createElement('style');s.id='neonStyle';document.head.appendChild(s);}
+  s.textContent=modoNeon?`
+    body{background:linear-gradient(135deg,#000011,#001100)!important;}
+    .tab{text-shadow:0 0 8px currentColor!important;}
+    #bigBtn{box-shadow:0 0 30px #00ff88,0 0 60px #00ff4488!important;border-color:#00ff88!important;}
+    :root{--accent:#00ff88;--accent2:#00ffcc;--glow1:#00ff8844;}
+  `:'';
+  toast(modoNeon?'💡 MODO NEON ATIVADO!':'💡 Neon desativado.','rainbow');
+}
+
+// ══════════════════════════════════════════════════════
+// 🎨 MODO PIXEL ART
+// ══════════════════════════════════════════════════════
+let modoPixel=localStorage.getItem('cmnPixel')==='1';
+function togglePixelArt(){
+  modoPixel=!modoPixel;localStorage.setItem('cmnPixel',modoPixel?'1':'0');
+  let s=document.getElementById('pixelStyle');
+  if(!s){s=document.createElement('style');s.id='pixelStyle';document.head.appendChild(s);}
+  s.textContent=modoPixel?`
+    *{font-family:"Courier New",monospace!important;image-rendering:pixelated;}
+    .tab,.ucard,button{border-radius:0!important;}
+    body{filter:contrast(1.2) saturate(.8);}
+  `:'';
+  toast(modoPixel?'🎨 PIXEL ART ATIVADO!':'🎨 Pixel Art desativado.','rainbow');
+}
+
+// ══════════════════════════════════════════════════════
+// 🕺 MODO RETRO
+// ══════════════════════════════════════════════════════
+let modoRetro=localStorage.getItem('cmnRetro')==='1';
+function toggleRetro(){
+  modoRetro=!modoRetro;localStorage.setItem('cmnRetro',modoRetro?'1':'0');
+  let s=document.getElementById('retroStyle');
+  if(!s){s=document.createElement('style');s.id='retroStyle';document.head.appendChild(s);}
+  s.textContent=modoRetro?`
+    *{font-family:"Courier New",monospace!important;}
+    body{background:#000!important;filter:sepia(.3) contrast(1.4);}
+    :root{--accent:#00ff00;--accent2:#00cc00;--bg:#000;--card:#001100;}
+    .tpanel{border:2px solid #00ff00!important;}
+  `:'';
+  toast(modoRetro?'🕺 MODO RETRO DOS ANOS 90!':'🕺 Retro desativado.','rainbow');
+}
+
+// ══════════════════════════════════════════════════════
+// 🚀 MODO GRAVIDADE ZERO
+// ══════════════════════════════════════════════════════
+let gravZeroAtivo=false,gravZeroInterval=null;
+function checkGravZero(){
+  const btn=document.getElementById('bigBtn');if(!btn)return;
+  if(activeBioma==='space'&&!gravZeroAtivo){
+    gravZeroAtivo=true;
+    let px=50,py=50,vx=0.3,vy=0.2;
+    btn.style.position='fixed';btn.style.zIndex='500';
+    gravZeroInterval=setInterval(()=>{
+      px+=vx;py+=vy;
+      if(px<5||px>85){vx*=-1;}
+      if(py<10||py>80){vy*=-1;}
+      btn.style.left=px+'%';btn.style.top=py+'%';
+    },50);
+    toast('🚀 GRAVIDADE ZERO! O botão está flutuando!','rainbow');
+  } else if(activeBioma!=='space'&&gravZeroAtivo){
+    gravZeroAtivo=false;
+    if(gravZeroInterval)clearInterval(gravZeroInterval);
+    btn.style.position='';btn.style.left='';btn.style.top='';btn.style.zIndex='';
+  }
+}
+setInterval(checkGravZero,5000);
+
+// ══════════════════════════════════════════════════════
+// 💧 MODO ÁGUA
+// ══════════════════════════════════════════════════════
+let modoAgua=false;
+function toggleModoAgua(){
+  modoAgua=!modoAgua;
+  let s=document.getElementById('aguaStyle');
+  if(!s){s=document.createElement('style');s.id='aguaStyle';document.head.appendChild(s);}
+  if(modoAgua){
+    s.textContent='body{background:linear-gradient(180deg,#001133,#002244)!important;}body::before{content:"";position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 40px,#00336611 40px,#00336611 41px);pointer-events:none;z-index:1;animation:aguaFloat 3s ease-in-out infinite;}@keyframes aguaFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}';
+    toast('💧 MODO ÁGUA ATIVADO!','rainbow');
+  } else {
+    s.textContent='';toast('💧 Modo Água desativado.','green');
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// 🌍 MODO DEUS DA NATUREZA
+// ══════════════════════════════════════════════════════
+function checkModoDeus(){
+  if(totalEarned<1e33)return;
+  const el=document.getElementById('t-modes');
+  if(el&&!document.getElementById('t-deus')){
+    const btn=document.createElement('button');
+    btn.className='tab';btn.id='t-deus';
+    btn.style.cssText='color:#fff;border-color:#fff;background:linear-gradient(135deg,#222,#444);font-weight:900;';
+    btn.textContent='🌍 DEUS';
+    btn.onclick=()=>ativarModoDeus();
+    el.parentNode.appendChild(btn);
+  }
+}
+function ativarModoDeus(){
+  globalMult*=1e9;clickPower*=1e9;autoPerSec*=1e9;
+  document.body.style.background='radial-gradient(circle,#ffffff,#ffffaa,#ffaa00,#000)';
+  toast('🌍 MODO DEUS DA NATUREZA! Tudo ×1 BILHÃO!!!','rainbow');
+  sfx('prestige');launchConfetti();launchConfetti();launchConfetti();
+  setTimeout(()=>{document.body.style.background='';},5000);
+}
+
+// ══════════════════════════════════════════════════════
+// 🌑 EVENTO ECLIPSE
+// ══════════════════════════════════════════════════════
+function triggerEclipse(){
+  const ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;z-index:600;background:radial-gradient(circle at 50% 50%,#000022 0%,#000044 30%,transparent 70%);pointer-events:none;animation:eclipseFade 600s linear forwards;';
+  if(!document.getElementById('eclipseStyle')){const s=document.createElement('style');s.id='eclipseStyle';s.textContent='@keyframes eclipseFade{0%{opacity:0}5%{opacity:1}90%{opacity:1}100%{opacity:0}}';document.head.appendChild(s);}
+  document.body.appendChild(ov);
+  const origClick=clickPower;clickPower*=20;updateUI();
+  toast('🌑 ECLIPSE! Click ×20 por 10 minutos!','rainbow');sfx('prestige');
+  setTimeout(()=>{clickPower=origClick;updateUI();ov.remove();toast('🌑 Eclipse acabou.','green');},600000);
+}
+
+// ══════════════════════════════════════════════════════
+// ☄️ CHUVA DE METEOROS
+// ══════════════════════════════════════════════════════
+function triggerMeteoros(){
+  toast('☄️ CHUVA DE METEOROS! Clique nos meteoros!','rainbow');sfx('prestige');
+  let count=0;
+  const int=setInterval(()=>{
+    if(count>=15){clearInterval(int);return;}
+    count++;
+    const m=document.createElement('div');
+    m.textContent='☄️';
+    m.style.cssText='position:fixed;left:'+Math.random()*85+'%;top:-30px;font-size:1.8rem;z-index:900;cursor:pointer;animation:meteorFall '+(2+Math.random()*2)+'s linear forwards;';
+    m.onclick=()=>{
+      const pts=Math.floor(autoPerSec*30+clickPower*100);
+      score+=pts;totalEarned+=pts;updateUI();
+      toast('☄️ +'+fmt(pts)+'!','rainbow');m.remove();
+    };
+    if(!document.getElementById('meteorStyle')){const s=document.createElement('style');s.id='meteorStyle';s.textContent='@keyframes meteorFall{to{top:110%;transform:rotate(45deg)}}';document.head.appendChild(s);}
+    document.body.appendChild(m);
+    setTimeout(()=>m.remove(),4000);
+  },400);
+}
+
+// ══════════════════════════════════════════════════════
+// 🌩️ EVENTO TEMPESTADE
+// ══════════════════════════════════════════════════════
+function triggerTempestade(){
+  const origAuto=autoPerSec;autoPerSec*=6;updateUI();
+  // Visual lightning
+  const lt=document.createElement('div');
+  lt.style.cssText='position:fixed;inset:0;z-index:599;pointer-events:none;';
+  for(let i=0;i<3;i++){
+    const bolt=document.createElement('div');
+    bolt.style.cssText='position:absolute;left:'+Math.random()*90+'%;top:0;width:3px;height:100%;background:linear-gradient(180deg,#fff8,#ffff00,#fff0);animation:boltFlash '+(0.3+i*0.2)+'s ease-in-out '+i*0.5+'s infinite;';
+    lt.appendChild(bolt);
+  }
+  if(!document.getElementById('boltStyle')){const s=document.createElement('style');s.id='boltStyle';s.textContent='@keyframes boltFlash{0%,100%{opacity:0}50%{opacity:1}}';document.head.appendChild(s);}
+  document.body.appendChild(lt);
+  toast('🌩️ TEMPESTADE! Auto ×6 por 3 minutos!','rainbow');sfx('prestige');
+  setTimeout(()=>{autoPerSec=origAuto;updateUI();lt.remove();toast('🌩️ Tempestade passou.','green');},180000);
+}
+
+// ══════════════════════════════════════════════════════
+// 🌊 EVENTO TSUNAMI
+// ══════════════════════════════════════════════════════
+function triggerTsunami(){
+  const acumulado=Math.floor(autoPerSec*600);// 10 min de auto
+  score+=acumulado;totalEarned+=acumulado;updateUI();
+  // Visual wave
+  const w=document.createElement('div');
+  w.textContent='🌊';
+  w.style.cssText='position:fixed;bottom:-100px;left:-100px;font-size:15rem;z-index:900;pointer-events:none;animation:waveSweep 3s ease-in-out forwards;';
+  if(!document.getElementById('waveStyle')){const s=document.createElement('style');s.id='waveStyle';s.textContent='@keyframes waveSweep{0%{transform:translate(-100px,0)}100%{transform:translate(120vw,-100px)}}';document.head.appendChild(s);}
+  document.body.appendChild(w);
+  setTimeout(()=>w.remove(),3200);
+  toast('🌊 TSUNAMI! +'+fmt(acumulado)+' pts (10 min de auto)!','rainbow');sfx('prestige');
+}
+
+// ══════════════════════════════════════════════════════
+// 👽 INVASÃO ALIENIGÉNA
+// ══════════════════════════════════════════════════════
+function triggerAliens(){
+  toast('👽 INVASÃO ALIENIGÉNA! Clique nos aliens!','rainbow');sfx('prestige');
+  let defeated=0,total=10;
+  for(let i=0;i<total;i++){
+    setTimeout(()=>{
+      const a=document.createElement('div');a.textContent='👽';
+      a.style.cssText='position:fixed;left:'+Math.random()*85+'%;top:'+Math.random()*70+'%;font-size:2rem;z-index:910;cursor:pointer;animation:alienFloat 2s ease-in-out infinite;';
+      if(!document.getElementById('alienStyle')){const s=document.createElement('style');s.id='alienStyle';s.textContent='@keyframes alienFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}';document.head.appendChild(s);}
+      a.onclick=()=>{
+        defeated++;score+=clickPower*1000;totalEarned+=clickPower*1000;updateUI();
+        a.remove();
+        if(defeated>=total){globalMult*=2;updateUI();toast('👽 Planeta defendido! Mult ×2!','rainbow');}
+      };
+      document.body.appendChild(a);
+      setTimeout(()=>a.remove(),8000);
+    },i*600);
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// 💥 EVENTO SUPERNOVA
+// ══════════════════════════════════════════════════════
+function triggerSupernova(){
+  if(activeBioma!=='space'){toast('A Supernova só aparece no bioma Espaço!','red');return;}
+  const ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;z-index:600;background:radial-gradient(circle,#fff 0%,#ffaa00 30%,#ff4400 60%,transparent 80%);pointer-events:none;animation:supernovaEx .5s ease-out forwards;';
+  if(!document.getElementById('supernovaStyle')){const s=document.createElement('style');s.id='supernovaStyle';s.textContent='@keyframes supernovaEx{0%{opacity:0;transform:scale(0)}50%{opacity:1;transform:scale(2)}100%{opacity:0;transform:scale(3)}}';document.head.appendChild(s);}
+  document.body.appendChild(ov);
+  setTimeout(()=>ov.remove(),600);
+  const origMult=globalMult;globalMult*=1000;updateUI();sfx('prestige');launchConfetti();
+  toast('💥 SUPERNOVA! Mult ×1000 por 10 segundos!!!','rainbow');
+  setTimeout(()=>{globalMult=origMult;updateUI();toast('💥 Supernova acabou.','green');},10000);
+}
+
+// ══════════════════════════════════════════════════════
+// 🎉 FESTIVAL VERDE
+// ══════════════════════════════════════════════════════
+let festivalAtivo=false;
+function triggerFestival(){
+  if(festivalAtivo){toast('Festival já ativo!','red');return;}
+  festivalAtivo=true;
+  const origMult=globalMult;globalMult*=5;updateUI();
+  launchConfetti();launchConfetti();sfx('prestige');
+  const banner=document.createElement('div');
+  banner.id='festivalBanner';
+  banner.style.cssText='position:fixed;top:0;left:0;right:0;z-index:1100;background:linear-gradient(90deg,#1d6b3a,#4ade80,#1d6b3a);color:#000;font-size:.65rem;font-weight:700;text-align:center;padding:.3rem;font-family:monospace;';
+  banner.textContent='🎉 FESTIVAL VERDE ATIVO — Tudo ×5 por 24h! 🎉';
+  document.body.prepend(banner);
+  toast('🎉 FESTIVAL VERDE! Tudo ×5 por 24 horas!','rainbow');
+  setTimeout(()=>{globalMult=origMult;festivalAtivo=false;banner.remove();updateUI();toast('🎉 Festival Verde acabou.','green');},86400000);
+}
+// Festival Verde: triggered automaticamente via checkEventosAleatorios()
+
+// ══════════════════════════════════════════════════════
+// 🌠 EVENTO NEBULOSA
+// ══════════════════════════════════════════════════════
+function checkNebulosa(){
+  if(activeBioma!=='space')return;
+  if(Math.random()>0.0005)return;
+  const nb=document.createElement('div');
+  nb.style.cssText='position:fixed;inset:0;z-index:580;pointer-events:none;background:radial-gradient(ellipse at '+Math.random()*100+'% '+Math.random()*100+'%,#ff00ff22,#0000ff11,transparent 60%);animation:nebulaFade 8s ease-in-out forwards;';
+  if(!document.getElementById('nebulaStyle')){const s=document.createElement('style');s.id='nebulaStyle';s.textContent='@keyframes nebulaFade{0%,100%{opacity:0}20%,80%{opacity:1}}';document.head.appendChild(s);}
+  document.body.appendChild(nb);
+  globalMult*=3;updateUI();
+  setTimeout(()=>{globalMult/=3;updateUI();nb.remove();},8000);
+  toast('🌌 Nebulosa! Mult ×3 por 8 segundos!','rainbow');
+}
+setInterval(checkNebulosa,10000);
+
+// ══════════════════════════════════════════════════════
+// 🎲 EVENTOS ALEATÓRIOS AUTOMÁTICOS
+// ══════════════════════════════════════════════════════
+let _ultimoMeteoro=0,_ultimoFestival=0,_ultimoEclipse=0,_ultimoTempestade=0,_ultimoTsunami=0;
+setInterval(()=>{
+  const now=Date.now();
+  // Chuva de meteoros: rara, a cada ~30-90 minutos
+  if(now-_ultimoMeteoro>1800000&&Math.random()<0.008){
+    _ultimoMeteoro=now;
+    toast('☄️ CHUVA DE METEOROS se aproximando!','rainbow');
+    setTimeout(triggerMeteoros,3000);
+  }
+  // Festival Verde: muito raro, a cada ~4-12 horas
+  if(now-_ultimoFestival>14400000&&Math.random()<0.002&&!festivalAtivo){
+    _ultimoFestival=now;
+    toast('🎉 FESTIVAL VERDE começando em 10 segundos!','rainbow');
+    setTimeout(triggerFestival,10000);
+  }
+  // Eclipse: a cada ~2-6 horas
+  if(now-_ultimoEclipse>7200000&&Math.random()<0.003){
+    _ultimoEclipse=now;
+    toast('🌑 ECLIPSE se aproximando!','rainbow');
+    setTimeout(triggerEclipse,5000);
+  }
+  // Tempestade: a cada ~1-3 horas
+  if(now-_ultimoTempestade>3600000&&Math.random()<0.005){
+    _ultimoTempestade=now;
+    toast('🌩️ TEMPESTADE chegando!','rainbow');
+    setTimeout(triggerTempestade,4000);
+  }
+  // Tsunami: a cada ~2-4 horas
+  if(now-_ultimoTsunami>7200000&&Math.random()<0.004){
+    _ultimoTsunami=now;
+    setTimeout(triggerTsunami,2000);
+  }
+},60000); // checa a cada minuto
+
+// ══════════════════════════════════════════════════════
+// 🌾 JARDIM DA LUA — 3x mais rápido 18h-6h
+// ══════════════════════════════════════════════════════
+function getLuaMult(){
+  const h=new Date().getHours();
+  return(h>=18||h<6)?3:1;
+}
+// Integrado no getRegadorSpeedMult via override abaixo
+const _origGetRegSpeed=getRegadorSpeedMult;
+getRegadorSpeedMult=function(){return _origGetRegSpeed()*getLuaMult();};
+
+// ══════════════════════════════════════════════════════
+// 🌍 PLANETA SECRETO — 5 planetas no espaço
+// ══════════════════════════════════════════════════════
+const PLANETAS=[
+  {id:'marte',   nome:'Marte',  icon:'🔴',req:1e20,rew:()=>{globalMult*=10;},rewL:'Mult ×10'},
+  {id:'jupiter', nome:'Júpiter',icon:'🟠',req:1e22,rew:()=>{autoPerSec*=100;},rewL:'Auto ×100'},
+  {id:'saturno', nome:'Saturno',icon:'🪐',req:1e24,rew:()=>{clickPower*=100;},rewL:'Click ×100'},
+  {id:'urano',   nome:'Urano',  icon:'🔵',req:1e26,rew:()=>{globalMult*=1000;},rewL:'Mult ×1000'},
+  {id:'netuno',  nome:'Netuno', icon:'💜',req:1e28,rew:()=>{globalMult*=1e6;addGem(50);launchConfetti();},rewL:'Mult ×1.000.000 + 50 💠'},
+];
+let planetasRestaurados=new Set(JSON.parse(localStorage.getItem('cmnPlanetas')||'[]'));
+function checkPlanetas(){
+  PLANETAS.forEach(p=>{
+    if(planetasRestaurados.has(p.id)||totalEarned<p.req)return;
+    planetasRestaurados.add(p.id);localStorage.setItem('cmnPlanetas',JSON.stringify([...planetasRestaurados]));
+    try{p.rew();}catch(e){}updateUI();sfx('prestige');launchConfetti();
+    toast(p.icon+' Planeta '+p.nome+' restaurado! '+p.rewL,'rainbow');
+    showBadgeConquista(p.icon,'PLANETA '+p.nome.toUpperCase()+'!',p.rewL);
+  });
+}
+
+// ══════════════════════════════════════════════════════
+// 👑 MEGA PRESTIGE — 100 reflorestamentos
+// ══════════════════════════════════════════════════════
+function megaPrestige(){
+  if(prestigeCount<100){toast('Precisa de 100 reflorestamentos!','red');return;}
+  if(!confirm('MEGA PRESTIGE? Reseta tudo mas Mult ×1.000.000 + 5000 🍃!'))return;
+  score=0;totalEarned=0;owned.clear();prestigeCount=0;
+  globalMult*=1000000;prestigeStars+=5000;addGem(50);
+  updateUI();renderBoosts();sfx('prestige');launchConfetti();launchConfetti();
+  toast('💥 MEGA PRESTIGE! Mult ×1.000.000 + 5000 🍃 + 50 💠!!!','rainbow');
+}
+
+// ══════════════════════════════════════════════════════
+// ♾️ NÍVEL ETERNO — 1000 reflorestamentos
+// ══════════════════════════════════════════════════════
+function checkEterno(){
+  if(prestigeCount>=1000&&!localStorage.getItem('cmnEterno')){
+    localStorage.setItem('cmnEterno','1');
+    // Mult verdadeiramente absurdo
+    globalMult=Number.MAX_SAFE_INTEGER;updateUI();
+    sfx('prestige');launchConfetti();launchConfetti();launchConfetti();
+    showBadgeConquista('♾️','ETERNO!','1000 reflorestamentos! Você é ETERNO!');
+    toast('♾️ ETERNO! Você atingiu o limite do universo!','rainbow');
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// 🔬 LABORATÓRIO DE PETS
+// ══════════════════════════════════════════════════════
+let labPet1='',labPet2='';
+const PET_HIBRIDOS=[
+  {p1:'pet_leao',p2:'pet_dragao',result:{id:'ph_reileao',name:'REI DRAGÃO',emoji:'🦁🐉',auto:1e9},desc:'Leão + Dragão = Rei Dragão (Auto +1B/seg)'},
+  {p1:'pet_borboleta',p2:'pet1',result:{id:'ph_abborboleta',name:'ABELHA DOURADA',emoji:'🦋🐝',auto:5e8},desc:'Borboleta + Abelha = Abelha Dourada'},
+  {p1:'pet_sereia',p2:'pet_tartaruga',result:{id:'ph_tartsereia',name:'TARTARUGA MÁGICA',emoji:'🧜🐢',auto:2e9},desc:'Sereia + Tartaruga = Tartaruga Mágica'},
+];
+function renderLabPets(){
+  const el=document.getElementById('labpetsPanel');if(!el)return;
+  const myPets=[...ownedPets].filter(p=>PETS.find(x=>x.id===p));
+  let html='<div style="font-size:.62rem;color:#ff88ff;margin-bottom:.5rem;">Escolha 2 pets pra combinar!</div>';
+  html+='<div style="display:flex;gap:.4rem;margin-bottom:.6rem;">';
+  ['labPet1','labPet2'].forEach((slot,si)=>{
+    const cur=window[slot];const pet=PETS.find(p=>p.id===cur);
+    html+='<div style="flex:1;background:var(--card);border:2px solid '+(cur?'#ff88ff':'var(--border)')+';border-radius:10px;padding:.5rem;text-align:center;min-height:60px;">';
+    html+='<div style="font-size:1.4rem;">'+(pet?pet.emoji:'❓')+'</div>';
+    html+='<div style="font-size:.5rem;color:var(--sub);">'+(pet?pet.name:'Slot '+(si+1))+'</div></div>';
+  });
+  html+='</div>';
+  html+='<div style="font-size:.6rem;color:#888;margin-bottom:.3rem;">Seus pets:</div>';
+  html+=myPets.slice(0,8).map(pid=>{const p=PETS.find(x=>x.id===pid);if(!p)return'';
+    return'<div class="ucard" onclick="selectLabPet(this.dataset.pid)" data-pid="'+pid+'" style="'+(labPet1===pid||labPet2===pid?'border-color:#ff88ff;':'')+'">'
+      +'<span class="ui">'+p.emoji+'</span><div class="un"><div class="t">'+p.name+'</div></div></div>';
+  }).join('');
+  if(labPet1&&labPet2){
+    const hib=PET_HIBRIDOS.find(h=>(h.p1===labPet1&&h.p2===labPet2)||(h.p1===labPet2&&h.p2===labPet1));
+    html+='<div style="margin-top:.6rem;background:#1a001a;border:2px solid #ff88ff;border-radius:10px;padding:.6rem;text-align:center;">';
+    if(hib){
+      html+='<div style="font-size:1.3rem;">'+hib.result.emoji+'</div>';
+      html+='<div style="font-size:.65rem;color:#ff88ff;font-weight:700;">'+hib.result.name+'</div>';
+      html+='<div style="font-size:.55rem;color:#aaa;margin:.2rem 0;">'+hib.desc+'</div>';
+      html+='<button onclick="combinarPets()" style="font-family:inherit;font-size:.65rem;padding:.35rem .9rem;background:linear-gradient(135deg,#660066,#ff88ff);color:#000;border:none;border-radius:8px;cursor:pointer;font-weight:700;">⚗️ COMBINAR!</button>';
+    } else {
+      html+='<div style="font-size:.6rem;color:#888;">Esses pets não têm combinação... tente outros!</div>';
+    }
+    html+='</div>';
+  }
+  el.innerHTML=html;
+}
+function selectLabPet(id){
+  if(!labPet1){labPet1=id;}else if(!labPet2&&labPet2!==id){labPet2=id;}else{labPet1=id;labPet2='';}
+  renderLabPets();
+}
+function combinarPets(){
+  const hib=PET_HIBRIDOS.find(h=>(h.p1===labPet1&&h.p2===labPet2)||(h.p1===labPet2&&h.p2===labPet1));
+  if(!hib)return;
+  ownedPets.delete(labPet1);ownedPets.delete(labPet2);
+  ownedPets.add(hib.result.id);
+  if(!PETS.find(p=>p.id===hib.result.id))PETS.push(hib.result);
+  autoPerSec+=hib.result.auto||0;
+  localStorage.setItem('cmnOwnedPets',JSON.stringify([...ownedPets]));
+  labPet1='';labPet2='';updateUI();sfx('prestige');launchConfetti();
+  toast('⚗️ '+hib.result.name+' criado!','rainbow');renderLabPets();
+}
+
+// ══════════════════════════════════════════════════════
+// 📚 BÍBLIA DA NATUREZA
+// ══════════════════════════════════════════════════════
+function renderBiblia(){
+  const el=document.getElementById('bibliaPanel');if(!el)return;
+  let html='';
+  const cats=[
+    {title:'🌱 SEMENTES',items:SEED_TYPES.slice(0,20).map(s=>({icon:s.icon,name:s.name,desc:'Cresce em '+s.grow+'s — Pool '+s.poolMin+'-'+s.poolMax}))},
+    {title:'🐾 PETS',items:PETS.slice(0,15).map(p=>({icon:p.emoji,name:p.name,desc:'Auto +'+fmt(p.auto||0)+'/seg'}))},
+    {title:'🌍 BIOMAS',items:BIOMAS.slice(0,8).map(b=>({icon:b.icon,name:b.name,desc:b.desc||b.name}))},
+    {title:'🎭 MODOS',items:MODES.slice(0,10).map(m=>({icon:m.icon,name:m.name,desc:m.desc}))},
+  ];
+  cats.forEach(cat=>{
+    html+='<div style="font-size:.65rem;color:#ffdd88;margin:.6rem 0 .3rem;font-weight:700;">'+cat.title+'</div>';
+    cat.items.forEach(item=>{
+      html+='<div style="display:flex;align-items:center;gap:.4rem;padding:.3rem;border-bottom:1px solid var(--border);">';
+      html+='<span style="font-size:1.1rem;">'+item.icon+'</span>';
+      html+='<div><div style="font-size:.6rem;color:#cfe;">'+item.name+'</div><div style="font-size:.48rem;color:var(--sub);">'+item.desc+'</div></div>';
+      html+='</div>';
+    });
+  });
+  el.innerHTML=html;
+}
+
+// ══════════════════════════════════════════════════════
+// 📜 SISTEMA DE QUESTS
+// ══════════════════════════════════════════════════════
+const QUESTS=[
+  {id:'q1',titulo:'A Grande Jornada',dias:1,icon:'🌱',passos:['Plante 10 sementes','Compre 5 boosts','Ganhe 1M de pontos'],rew:()=>{globalMult+=10;},rewL:'Mult +10'},
+  {id:'q2',titulo:'O Caminho do Guerreiro',dias:3,icon:'⚔️',passos:['Faça 1000 cliques','Refloreste 1 vez','Desbloqueie 1 país'],rew:()=>{globalMult*=5;},rewL:'Mult ×5'},
+  {id:'q3',titulo:'Mestre da Natureza',dias:7,icon:'🌿',passos:['Chegue ao rank Ouro','Compre 50 boosts','Colha 20 sementes','Ganhe 1 Trilhão'],rew:()=>{globalMult*=50;addGem(10);},rewL:'Mult ×50 + 10 💠'},
+  {id:'q4',titulo:'O Guardião Eterno',dias:30,icon:'👑',passos:['Refloreste 10 vezes','Restaure 10 países','Chegue ao rank Lendário','Compre todos os biomas'],rew:()=>{globalMult*=1000;addGem(100);launchConfetti();},rewL:'Mult ×1000 + 100 💠'},
+];
+let questsAtivas=JSON.parse(localStorage.getItem('cmnQuestsAtivas')||'{}');
+let questsConcluidas=new Set(JSON.parse(localStorage.getItem('cmnQuestsDone')||'[]'));
+function startQuest(id){
+  if(questsAtivas[id]){toast('Quest já em andamento!','red');return;}
+  if(questsConcluidas.has(id)){toast('Quest já concluída!','red');return;}
+  questsAtivas[id]={startDate:todayDateKey(),progress:0};
+  localStorage.setItem('cmnQuestsAtivas',JSON.stringify(questsAtivas));
+  toast('📜 Quest iniciada!','rainbow');renderQuests();
+}
+function renderQuests(){
+  const el=document.getElementById('questsPanel');if(!el)return;
+  let html='';
+  QUESTS.forEach(q=>{
+    const done=questsConcluidas.has(q.id);
+    const ativa=questsAtivas[q.id];
+    html+='<div style="background:var(--card);border:2px solid '+(done?'#4ade80':ativa?'#ffd700':'var(--border)')+';border-radius:12px;padding:.7rem;margin-bottom:.5rem;">';
+    html+='<div style="display:flex;align-items:center;gap:.4rem;margin-bottom:.3rem;">';
+    html+='<span style="font-size:1.3rem;">'+q.icon+'</span>';
+    html+='<div style="flex:1;"><div style="font-size:.65rem;color:'+( done?'#4ade80':ativa?'#ffd700':'#cfe')+';font-weight:700;">'+q.titulo+(done?' ✅':'')+'</div>';
+    html+='<div style="font-size:.5rem;color:var(--sub);">'+q.dias+' dia(s) · '+q.rewL+'</div></div></div>';
+    q.passos.forEach((p,i)=>{ html+='<div style="font-size:.55rem;color:#aaa;padding-left:.4rem;">'+( done?'✅':'⬜')+' '+p+'</div>'; });
+    if(!done&&!ativa)html+='<button onclick="startQuest(this.dataset.qid)" data-qid="'+q.id+'" style="margin-top:.4rem;font-family:inherit;font-size:.6rem;padding:.3rem .7rem;background:linear-gradient(135deg,#224488,#4488ff);color:#fff;border:none;border-radius:8px;cursor:pointer;">▶️ INICIAR</button>';
+    if(ativa&&!done)html+='<div style="font-size:.52rem;color:#ffd700;margin-top:.3rem;">⏳ Em andamento desde '+ativa.startDate+'</div>';
+    html+='</div>';
+  });
+  el.innerHTML=html;
+}
+
+// ══════════════════════════════════════════════════════
+// 🛒 LOJA DO DIA
+// ══════════════════════════════════════════════════════
+const LOJA_DIA_POOL=[
+  {icon:'⚡',nome:'Turbo do Dia',fn:()=>{clickPower*=5;},rewL:'Click ×5',custo:()=>score*0.1||1e8},
+  {icon:'🌿',nome:'Folhas do Dia',fn:()=>{prestigeStars+=10;},rewL:'+10 🍃',custo:()=>1e9},
+  {icon:'💠',nome:'Gem do Dia',fn:()=>{addGem(2);},rewL:'+2 💠',custo:()=>5e9},
+  {icon:'🔥',nome:'Chama do Dia',fn:()=>{autoPerSec*=3;},rewL:'Auto ×3',custo:()=>2e9},
+  {icon:'💎',nome:'Diamante do Dia',fn:()=>{globalMult*=3;},rewL:'Mult ×3',custo:()=>1e10},
+  {icon:'🌟',nome:'Estrela do Dia',fn:()=>{score+=totalEarned*0.1;totalEarned+=totalEarned*0.1;},rewL:'+10% dos seus pts totais',custo:()=>1e10},
+];
+let lojaDiaBought=JSON.parse(localStorage.getItem('cmnLojaDia')||'{}');
+function renderLojaDia(){
+  const el=document.getElementById('lojadiaPanel');if(!el)return;
+  if(lojaDiaBought.date!==todayDateKey()){lojaDiaBought={date:todayDateKey()};localStorage.setItem('cmnLojaDia',JSON.stringify(lojaDiaBought));}
+  const seed=parseInt(todayDateKey().replace(/-/g,''));
+  const idxs=[(seed)%LOJA_DIA_POOL.length,(seed+2)%LOJA_DIA_POOL.length,(seed+5)%LOJA_DIA_POOL.length];
+  let html='<div style="font-size:.6rem;color:#ffaaff;text-align:center;margin-bottom:.6rem;">Renova meia-noite! '+todayDateKey()+'</div>';
+  idxs.forEach((idx,i)=>{
+    const item=LOJA_DIA_POOL[idx];const done=lojaDiaBought['i'+i];const custo=item.custo();
+    const cls=done?'owned':score>=custo?'afford':'';
+    html+='<div class="ucard '+cls+'">';
+    html+='<span class="ui">'+item.icon+'</span>';
+    html+='<div class="un"><div class="t">'+item.nome+(done?' ✅':'')+'</div><div class="d">'+item.rewL+'</div></div>';
+    if(!done)html+='<div class="uc"><button onclick="buyLojaDia('+i+','+idx+')" style="font-family:inherit;font-size:.55rem;padding:.2rem .5rem;background:none;border:none;color:inherit;cursor:pointer;">'+fmt(custo)+'</button></div>';
+    else html+='<div class="uc">OK</div>';
+    html+='</div>';
+  });
+  el.innerHTML=html;
+}
+
+function buyLojaDia(slotIdx,itemIdx){
+  const item=LOJA_DIA_POOL[itemIdx];const custo=item.custo();
+  if(score<custo){toast('Pontos insuficientes!','red');return;}
+  score-=custo;updateUI();try{item.fn();}catch(e){}
+  lojaDiaBought['i'+slotIdx]=true;localStorage.setItem('cmnLojaDia',JSON.stringify(lojaDiaBought));
+  sfx('buy');toast('🛒 '+item.nome+': '+item.rewL,'rainbow');renderLojaDia();
+}
+
+// ══════════════════════════════════════════════════════
+// 🏛️ TORRE DE BOOSTS
+// ══════════════════════════════════════════════════════
+function renderTorreBoosts(){
+  const el=document.getElementById('torreboostsPanel');if(!el)return;
+  const myBoosts=BOOSTS.filter(b=>owned.has(b.id));
+  if(!myBoosts.length){el.innerHTML='<div style="text-align:center;padding:1rem;font-size:.6rem;color:var(--sub);">Compre boosts pra ver a sua torre!</div>';return;}
+  let html='<div style="font-size:.62rem;color:#ffcc44;margin-bottom:.4rem;">🏛️ Sua torre tem '+myBoosts.length+' andares!</div>';
+  html+='<div style="display:flex;flex-direction:column;align-items:center;gap:.15rem;">';
+  [...myBoosts].reverse().forEach((b,i)=>{
+    const w=Math.min(100,30+i*2);
+    html+='<div style="width:'+w+'%;background:linear-gradient(90deg,'+(i%2?'#1a3a1f':'#0a2a0f')+','+( i%2?'#2a4a2f':'#1a3a1f')+');border:1px solid #4ade80;border-radius:4px;padding:.2rem .4rem;font-size:.48rem;color:#cfe;text-align:center;">'+b.icon+' '+b.name+'</div>';
+  });
+  html+='<div style="font-size:1.5rem;margin-top:.3rem;">🌱</div>';
+  html+='</div>';
+  el.innerHTML=html;
+}
+
+// ══════════════════════════════════════════════════════
+// 🔄 BOOST ATÔMICO
+// ══════════════════════════════════════════════════════
+let atomicoBought=localStorage.getItem('cmnAtomico')===todayDateKey();
+function comprarAtomico(){
+  if(atomicoBought){toast('Boost Atômico já comprado hoje!','red');return;}
+  const custo=1e15;
+  if(score<custo){toast('Precisa de 1 Quadrilhão!','red');return;}
+  score-=custo;updateUI();
+  atomicoBought=true;localStorage.setItem('cmnAtomico',todayDateKey());
+  toast('☢️ Boost Atômico comprado! Explode em 1 hora com Mult ×1000!','rainbow');
+  setTimeout(()=>{globalMult*=1000;updateUI();sfx('prestige');launchConfetti();launchConfetti();toast('☢️ BOOM! Boost Atômico explodiu! Mult ×1000!','rainbow');},3600000);
+}
+
+// ══════════════════════════════════════════════════════
+// 🌟 CONQUISTA MADRUGADOR
+// ══════════════════════════════════════════════════════
+(function checkMadrugador(){try{
+  const h=new Date().getHours();
+  if(h>=3&&h<4&&!localStorage.getItem('cmnMadrug'+new Date().toDateString())){
+    localStorage.setItem('cmnMadrug'+new Date().toDateString(),'1');
+    globalMult+=15;updateUI();sfx('prestige');
+    showBadgeConquista('🌙','MADRUGADOR!','Jogando às 3h da manhã! Mult +15!');
+    toast('🌙 CONQUISTA MADRUGADOR! Mult +15!','rainbow');
+  }
+}catch(e){}})();
+
+// ══════════════════════════════════════════════════════
+// 🌟 CONQUISTA FINAL SECRETA
+// ══════════════════════════════════════════════════════
+// Desbloqueada ao: ter o jogo aberto por 24h seguidas
+(function checkConquistaFinal(){try{
+  const sessaoMs=Date.now()-sessaoStart;
+  if(sessaoMs>=86400000&&!localStorage.getItem('cmnConquistaFinal')){
+    localStorage.setItem('cmnConquistaFinal','1');
+    globalMult*=1e10;addGem(1000);updateUI();sfx('prestige');launchConfetti();launchConfetti();launchConfetti();
+    showBadgeConquista('🌟','CONQUISTA FINAL!','24 horas seguidas! Mult ×10B + 1000 💠!!!');
+  }
+}catch(e){}})();
+
+// ══════════════════════════════════════════════════════
+// 🔄 COMBINAR CHECKLOOP
+// ══════════════════════════════════════════════════════
 function admConfettiSafe(){try{toast('🎉','rainbow');}catch(e){}}
 
 // ══════════════════════════════════════════════════════
@@ -8751,6 +9431,17 @@ const SEED_TYPES=[
   {id:'sd_gigante_2',name:'GIGANTE (slot 2)',icon:'🌱',cost:0,grow:120,poolMin:8,poolMax:9},
   {id:'sd_espacial',name:'SEMENTE ESPACIAL',icon:'🚀',cost:2e6,grow:200,poolMin:9,poolMax:9},
   {id:'sd_arcoiris',name:'ARCO-ÍRIS',icon:'🌈',cost:0,grow:30,poolMin:9,poolMax:9},
+  {id:'sd_diamante',name:'DIAMANTE',icon:'💎',cost:1e8,grow:500,poolMin:9,poolMax:9},
+  {id:'sd_cronica',name:'CRÔNICA',icon:'📚',cost:1e6,grow:3600,poolMin:8,poolMax:9},
+  {id:'sd_viral',name:'VIRAL',icon:'🧫',cost:2e5,grow:60,poolMin:7,poolMax:9},
+  {id:'sd_noturna',name:'NOTURNA',icon:'🌙',cost:1e6,grow:180,poolMin:8,poolMax:9},
+  {id:'sd_vento',name:'DO VENTO',icon:'🌬️',cost:5e5,grow:45,poolMin:7,poolMax:9},
+  {id:'sd_relampao',name:'DO RELÂMPÃO',icon:'⚡',cost:1e4,grow:1,poolMin:9,poolMax:9},
+  {id:'sd_arcocristao',name:'ARCO-CRISTÃO',icon:'💠',cost:0,grow:600,poolMin:9,poolMax:9},
+  {id:'sd_infinita',name:'INFINITA',icon:'♾️',cost:0,grow:999999,poolMin:9,poolMax:9},
+  {id:'sd_fossilizada',name:'FOSSILIZADA',icon:'🦴',cost:1e7,grow:7200,poolMin:9,poolMax:9},
+  {id:'sd_ancestral',name:'ANCESTRAL',icon:'🌳',cost:0,grow:86400,poolMin:9,poolMax:9},
+  {id:'sd_cosmica',name:'CÓSMICA',icon:'🌌',cost:0,grow:300,poolMin:9,poolMax:9},
 ];
 // ══ GERADOR DE MAIS SEMENTES (pra ter 100!) ══
 const EXTRA_SEED_TEMPLATES=[
@@ -9877,6 +10568,9 @@ setInterval(()=>{
   checkAniversarioJogador();
   checkMedalhasTempo();
   verificarDragaoAdulto();
+  checkPlanetas();
+  checkEterno();
+  if(getBonusSol()>1)clickPower*=getBonusSol(); // sol temporario no doClick
   addXP(1);
   // Atualiza XP bar
   try{const xb=document.getElementById('xpBar');if(xb)xb.textContent='⭐ Nível '+xpNivel+' · XP: '+xpTotal+'/'+xpParaProxNivel(xpNivel);

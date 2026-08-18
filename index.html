@@ -1015,7 +1015,7 @@ function doClick(ev){
   lastClick=now;
   if(comboCount>2)pts=Math.floor(pts*(1+comboCount*0.05));
 
-  const m=gm()*getModeClickBonus()*getWeatherMult()*getFimDeSemanaMult();
+  const m=gm()*getModeClickBonus()*getWeatherMult()*getFimDeSemanaMult()*getBonusSol();
   pts=Math.floor(pts*m*tempMult);
   score+=pts;totalClicks++;totalEarned+=pts;dailyScoreEarned+=pts;weeklyScoreEarned+=pts;
   updateBtnReaction();
@@ -1215,6 +1215,7 @@ function initWeekly(){
   }
 }
 function checkWeekly(){
+  if(!weeklyState)return;
   WEEKLY_MISSIONS_LIST.forEach(m=>{
     if(weeklyState.done.includes(m.id))return;
     let val=0;
@@ -1235,6 +1236,7 @@ function checkWeekly(){
 }
 function renderWeeklyList(){
   const el=document.getElementById('weeklyList');if(!el)return;
+  if(!weeklyState){el.innerHTML='<div style="text-align:center;font-size:.6rem;color:var(--sub);">Carregando missões semanais...</div>';return;}
   let html='';
   WEEKLY_MISSIONS_LIST.forEach(m=>{
     const done=weeklyState.done.includes(m.id);
@@ -2718,7 +2720,7 @@ const STORY_CHAPTERS_NEW=[
      {id:'h7m1',label:'Complete os capítulos 1 a 6',check:()=>storyCompleted.size>=6},
      {id:'h7m2',label:'Tenha mais de 1 quadrilhão de pontos',check:()=>totalEarned>=1e15},
    ],
-   reward:()=>{globalMult*=100;prestigeStars+=999;},rewLabel:'Mult ×100 e +999 🍃 — FIM!'},
+   reward:()=>{globalMult*=5;prestigeStars+=20;},rewLabel:'Mult ×5 e +20 🍃 — FIM!'},
 ];
 let storyCompleted=new Set(JSON.parse(localStorage.getItem('cmnStoryCompleted')||'[]'));
 function checkStoryMissions(){
@@ -2782,7 +2784,7 @@ const GACHA_BOXES=[
    rarities:[{label:'Mítico',color:'#ff44ff',pct:40,fn:()=>{globalMult*=5;return 'Mult ×5!';}},
              {label:'Divino',color:'#44ffff',pct:35,fn:()=>{prestigeStars+=50;return '+50 🍃!';}},
              {label:'ULTRA',color:'#ff4444',pct:20,fn:()=>{globalMult*=20;return 'Mult ×20!!!';}},
-             {label:'LENDÁRIO+',color:'#ffffff',pct:5,fn:()=>{globalMult*=100;prestigeStars+=100;return 'Mult ×100 + 100 🍃!!!';}},]},
+             {label:'LENDÁRIO+',color:'#ffffff',pct:5,fn:()=>{globalMult*=5;prestigeStars+=100;return 'Mult ×100 + 100 🍃!!!';}},]},
 ];
 let gachaHistory=JSON.parse(localStorage.getItem('cmnGachaHistory')||'[]');
 function openGachaBox(boxId){
@@ -2939,7 +2941,7 @@ const WORLD_COUNTRIES=[
   {flag:'🇵🇰',name:'Paquistão',req:1e17,bonus:()=>{globalMult*=50;},rew:'Mult ×50'},
   {flag:'🇻🇳',name:'Vietnã',req:5e17,bonus:()=>{clickPower+=1e9;},rew:'+1B/click'},
   {flag:'🇹🇷',name:'Turquia',req:1e18,bonus:()=>{globalMult*=100;},rew:'Mult ×100'},
-  {flag:'🌍',name:'TERRA UNIDA',req:1e21,bonus:()=>{globalMult*=1000;prestigeStars+=100;},rew:'Mult ×1000 + 100 🍃'},
+  {flag:'🌍',name:'TERRA UNIDA',req:1e21,bonus:()=>{globalMult*=30;prestigeStars+=100;},rew:'Mult ×1000 + 100 🍃'},
 ];
 let mapaUnlocked=new Set(JSON.parse(localStorage.getItem('cmnMapaUnlocked')||'[]'));
 function checkMapa(){
@@ -3299,7 +3301,7 @@ function renderGardenAnimated(){
       </div>`;return;
     }
     const seed=SEED_TYPES.find(s=>s.id===plot.seedId);
-    const elapsed=(Date.now()-plot.plantedAt)/1000;
+    if(!seed){garden[i]=null;return;} // semente inválida, limpa o slot
     const effGrow=seed.grow*getRegadorSpeedMult();
     const ready=elapsed>=effGrow;
     const pct=Math.min(100,Math.floor(elapsed/effGrow*100));
@@ -3829,7 +3831,7 @@ function renderOvos(){
 let inventario=JSON.parse(localStorage.getItem('cmnInventario')||'{}');
 const INV_ITEMS_CATALOG={
   pocao_mult:{icon:'🧪',name:'Poção de Mult',desc:'Mult ×3 por 5 minutos',fn:()=>{tempMult=Math.max(tempMult,3);tempMultExp=Date.now()+300000;}},
-  pocao_click:{icon:'⚡',name:'Elixir de Clique',desc:'+5M/clique por 10 min',fn:()=>{clickPower+=5e6;setTimeout(()=>{clickPower-=5e6;updateUI();},600000);}},
+  pocao_click:{icon:'⚡',name:'Elixir de Clique',desc:'+5M/clique por 10 min',fn:()=>{clickPower+=5e6;setTimeout(()=>{clickPower-=5e6;updateUI();},300000);}},
   escudo:{icon:'🛡️',name:'Escudo Verde',desc:'Protege do próximo ban',fn:()=>{shieldActive=true;localStorage.setItem('cmnShield','1');}},
   semente_lend:{icon:'🌟',name:'Semente Lendária',desc:'Planta lendária pronta!',fn:()=>{const i=garden.findIndex(g=>!g);if(i>-1){garden[i]={seedId:'sd4',plantedAt:0};saveGarden();renderGardenAnimated();}}},
   mega_boost:{icon:'💥',name:'Mega Boost',desc:'Mult ×10 por 1 minuto',fn:()=>{tempMult=Math.max(tempMult,10);tempMultExp=Date.now()+60000;}},
@@ -5110,7 +5112,7 @@ function checkTrofeuPlatina(){
   if(localStorage.getItem('cmnPlatina'))return;
   if(earnedTrofeus.size>=TROFEUS.length){
     localStorage.setItem('cmnPlatina','1');
-    globalMult*=100;prestigeStars+=500;updateUI();sfx('prestige');
+    globalMult*=5;prestigeStars+=30;updateUI();sfx('prestige');
     toast('🏆 TROFÉU DE PLATINA! Todos os troféus! Mult ×100 + 500 🍃!!!','rainbow');
     launchConfetti();
   }
@@ -5124,7 +5126,7 @@ const LEILAO_ITEMS=[
   {id:'l2',icon:'🌟',name:'Estrela Dourada',  valor:5e12, rew:()=>{globalMult*=10;},  rewL:'Mult ×10'},
   {id:'l3',icon:'👑',name:'Coroa Suprema',    valor:2e13, rew:()=>{globalMult*=50;},  rewL:'Mult ×50'},
   {id:'l4',icon:'🌿',name:'Essência Verde',   valor:1e14, rew:()=>{prestigeStars+=200;}, rewL:'+200 🍃'},
-  {id:'l5',icon:'💥',name:'Núcleo Cósmico',   valor:5e14, rew:()=>{globalMult*=100;}, rewL:'Mult ×100'},
+  {id:'l5',icon:'💥',name:'Núcleo Cósmico',   valor:5e14, rew:()=>{globalMult*=8;}, rewL:'Mult ×100'},
 ];
 let leilaoLances=JSON.parse(localStorage.getItem('cmnLeilaoLances')||'{}');
 let leilaoHistorico=JSON.parse(localStorage.getItem('cmnLeilaoHistorico')||'[]');
@@ -5550,8 +5552,8 @@ const JORNADA=[
   {cap:6, titulo:'O Mapa do Mundo',   req:()=>mapaUnlocked.size>=5,rew:()=>{addGem(2);},          rewL:'+2 💠 Gems',   historia:'Cinco países restaurados. O planeta começou a ficar verde de verdade.'},
   {cap:7, titulo:'O Pet Aliado',      req:()=>ownedPets.size>=1,  rew:()=>{globalMult*=5;},       rewL:'Mult ×5',      historia:'Um ser mágico apareceu ao seu lado. Juntos vocês são imbatíveis.'},
   {cap:8, titulo:'A Torre dos Boosts',req:()=>owned.size>=50,     rew:()=>{clickPower*=5;},       rewL:'Click ×5',     historia:'Cinquenta melhorias. A torre verde chegou às nuvens.'},
-  {cap:9, titulo:'O Oceano Restaurado',req:()=>activeBioma==='ocean'&&totalEarned>=1e12,rew:()=>{globalMult*=10;addGem(3);},rewL:'Mult ×10 + 3 💠',historia:'As águas ficaram cristalinas. 1 trilhão de pontos despejados no oceano.'},
-  {cap:10,titulo:'A NATUREZA ETERNA', req:()=>totalEarned>=1e18,  rew:()=>{globalMult*=1000;addGem(20);launchConfetti();},rewL:'Mult ×1000 + 20 💠',historia:'O planeta está salvo. Você não é mais um jogador — é o Guardião da Natureza Eterna.'},
+  {cap:9, titulo:'O Oceano Restaurado',req:()=>activeBioma==='ocean'&&totalEarned>=1e12,rew:()=>{globalMult*=3;addGem(1);},rewL:'Mult ×3 + 1 💠',historia:'As águas ficaram cristalinas. 1 trilhão de pontos despejados no oceano.'},
+  {cap:10,titulo:'A NATUREZA ETERNA', req:()=>totalEarned>=1e18,  rew:()=>{globalMult*=10;addGem(5);launchConfetti();},rewL:'Mult ×10 + 5 💠',historia:'O planeta está salvo. Você não é mais um jogador — é o Guardião da Natureza Eterna.'},
 ];
 let jornadaDone=new Set(JSON.parse(localStorage.getItem('cmnJornadaDone')||'[]'));
 function checkJornada(){
@@ -5785,8 +5787,7 @@ function renderSons(){
   });
   html+='</div>';
   // Status aniversário
-  const st=document.getElementById('anivStatus');
-  if(st&&aniversarioJogador)st.textContent='✅ Aniversário salvo: '+aniversarioJogador.split('-').reverse().join('/');
+  try{const st=document.getElementById('anivStatus');if(st&&aniversarioJogador)st.textContent='✅ Aniversário: '+aniversarioJogador.split('-').reverse().join('/');}catch(e){}
   const dia=document.getElementById('anivDia');const mes=document.getElementById('anivMes');
   if(dia&&mes&&aniversarioJogador){
     const [d,m]=aniversarioJogador.split('-');
@@ -7202,6 +7203,7 @@ function buySazonalExtra(sazonNome,idx,custo){
 // 💤 CONQUISTA SEM DORMIR — 3h seguidas
 // ══════════════════════════════════════════════════════
 (function checkSemDormir(){try{
+  if(typeof stats_startTime==='undefined')return;
   const playedMs=Date.now()-stats_startTime;
   if(playedMs>=10800000&&!localStorage.getItem('cmnSemDormir')){
     localStorage.setItem('cmnSemDormir','1');
@@ -7284,156 +7286,72 @@ function showCreditosAnimados(){
 // 📖 TUTORIAL INTERATIVO
 // ══════════════════════════════════════════════════════
 const TUTORIAL_PASSOS = [
-  // ── BÁSICO ──
-  {titulo:'🌿 Bem-vindo ao Clicker Master 2!',
-   texto:'Olá! Sou o Guia Verde 🌿<br>Este jogo foi criado pelo <strong style="color:#4ade80;">Jojo</strong> pra restaurar o planeta!<br>Tem mais de 50 abas, 400+ boosts, pets, biomas e muito mais!<br>Vou te ensinar tudo em 30 passos. Bora? 🚀',
-   destaque:null,acao:null},
-
-  {titulo:'👆 O Botão Verde — o início de tudo',
-   texto:'Esse botão enorme no centro é o coração do jogo!<br><strong>Clique nele</strong> pra ganhar pontos.<br>Clicar rápido em sequência faz <strong>COMBO</strong> e dá até +50% de bônus!<br>Tente clicar agora! 🖱️',
-   destaque:'#bigBtn',acao:null},
-
-  {titulo:'💰 Entendendo os números',
-   texto:'Na parte de cima você vê:<br>• <strong>Score</strong> = seus pontos atuais<br>• <strong>PTS/CLIQUE</strong> = quanto cada clique vale<br>• <strong>PTS/SEG</strong> = automático por segundo<br>• <strong>MULT</strong> = multiplicador de tudo!<br>Quanto maior o MULT, mais rápido você cresce! 📈',
-   destaque:'.chips',acao:null},
-
-  // ── BOOSTS ──
-  {titulo:'🌳 Aba BOOSTS — melhorias permanentes',
-   texto:'Aqui você compra upgrades que ficam pra sempre!<br>Comece pelos mais baratos (🌱 SEMENTE).<br>Tem mais de <strong>400 boosts</strong> no total!<br>Alguns aumentam o clique, outros o automático, outros o multiplicador.',
-   destaque:'#t-boosts',acao:"showTab('boosts',document.getElementById('t-boosts'))"},
-
-  // ── SEMENTES ──
-  {titulo:'🌱 Aba SEMENTES — seu jardim',
-   texto:'Compre sementes, plante no jardim e espere crescer!<br>Quando a barra encher = <strong>clique pra colher</strong> e ganhar pontos!<br>Sementes mais raras demoram mais mas valem MUITO mais.<br>💧 O Regador acelera o crescimento!',
-   destaque:'#t-seeds',acao:"showTab('seeds',document.getElementById('t-seeds'))"},
-
-  {titulo:'🌿 Jardim Secreto e Sementes Cruzadas',
-   texto:'Na aba <strong>🌿 JARDIM SECRETO</strong> tem 3 slots exclusivos!<br>Lá você pode <strong>cruzar 2 sementes</strong> pra criar uma nova mais poderosa:<br>🔀 Fusão · 💥 Épica Plus · 🌌 Cósmica · 🌈 Arco-Íris<br>Custa 1 bilhão pra desbloquear!',
-   destaque:'#t-jardimsecreto',acao:"showTab('jardimsecreto',document.getElementById('t-jardimsecreto'))"},
-
-  // ── PRESTIGE ──
-  {titulo:'🍃 Reflorestar — a jogada mais importante!',
-   texto:'Na aba <strong>REFLORESTAR</strong> você faz o prestige!<br>Troca seus pontos por folhas 🍃.<br><strong>Cada folha = +10% de multiplicador PERMANENTE!</strong><br>10 folhas = Mult +100% pra sempre!<br>É melhor reflorestar cedo e muitas vezes! 🌍',
-   destaque:'#t-prestige',acao:"showTab('prestige',document.getElementById('t-prestige'))"},
-
-  // ── DIÁRIAS E SEMANAIS ──
-  {titulo:'📅 Missões Diárias e Semanais',
-   texto:'Na aba <strong>DIÁRIAS</strong> tem missões novas todo dia!<br>Completa e ganha bônus automático.<br>Na aba <strong>SEMANAIS</strong> tem missões maiores que renovam toda semana.<br>Sempre vale a pena checar! 📋',
-   destaque:'#t-daily',acao:"showTab('daily',document.getElementById('t-daily'))"},
-
-  // ── CONQUISTAS ──
-  {titulo:'🏆 Conquistas — seus troféus',
-   texto:'Na aba <strong>CONQUISTAS</strong> você ganha troféus automaticamente!<br>Cada conquista dá um bônus único.<br>Tem conquistas <strong>secretas</strong> que o jogo não conta — você descobre sem querer! 🔮<br>Tente descobrir todas!',
-   destaque:'#t-ms',acao:"showTab('ms',document.getElementById('t-ms'))"},
-
-  // ── RANKS ──
-  {titulo:'🏅 Sistema de Ranks',
-   texto:'Na aba <strong>RANK</strong> você sobe de:<br>⬜ Ferro → 🟫 Bronze → Prata → Ouro → Platina → 💎 Diamante → Mestre → Grão-Mestre → ⚡ Lendário → 🌟 Imortal → 🌿 Deus da Natureza!<br>Cada rank dá <strong>Mult ×2</strong> automático! 👑',
-   destaque:'#t-ranks',acao:"showTab('ranks',document.getElementById('t-ranks'))"},
-
-  // ── HABILIDADES ──
-  {titulo:'🌿 Árvore de Habilidades',
-   texto:'Na aba <strong>HABILIDADES</strong> você gasta pontos de habilidade!<br>Tem 3 ramos: Natureza (click), Oceano (auto) e Espaço (mult).<br>A habilidade final do Espaço dá Mult ×100!<br>💡 Você ganha 1 ponto ao reflorestar!',
-   destaque:'#t-skills',acao:"showTab('skills',document.getElementById('t-skills'))"},
-
-  // ── BIOMAS ──
-  {titulo:'🌍 Biomas — ambientes especiais',
-   texto:'Na aba <strong>BIOMAS</strong> você ativa diferentes ambientes!<br>🌿 Floresta (padrão) · 🌊 Oceano (+Auto) · 🌋 Montanha (+Click) · 🌌 Espaço (+Mult) · 🦁 Savana (+Click)<br>O bioma Oceano tem sub-biomas: Raso · Profundo · Abismo! 🦑',
-   destaque:'#t-biomas',acao:"showTab('biomas',document.getElementById('t-biomas'))"},
-
-  // ── PETS ──
-  {titulo:'🐾 Pets — seus aliados',
-   texto:'Na aba <strong>PETS</strong> você compra criaturas que te ajudam!<br>🐝 Abelha → automático · 🦋 Borboleta → dobra 10 cliques<br>🦁 Leão → rugido a cada 5min · 🧜 Sereia → bônus no Oceano<br>🐲 Dragão Bebê → alimenta pra evoluir até ficar adulto! 🐉',
-   destaque:'#t-pets',acao:"showTab('pets',document.getElementById('t-pets'))"},
-
-  // ── ÁLBUM ──
-  {titulo:'📒 Álbum de Figurinhas',
-   texto:'Na aba <strong>ÁLBUM</strong> você coleciona criaturas da natureza!<br>Tem mais de <strong>1.100 figurinhas</strong> pra descobrir!<br>Cada uma desbloqueia automaticamente conforme você joga.<br>Algumas dão Mult ×100 ao ser descobertas! 🌟',
-   destaque:'#t-album',acao:"showTab('album',document.getElementById('t-album'))"},
-
-  // ── LAB ──
-  {titulo:'⚗️ Laboratório — pesquisas avançadas',
-   texto:'Na aba <strong>LAB</strong> você faz experimentos e pesquisas!<br>Invista pontos em upgrades especiais que não aparecem em nenhum outro lugar.<br>Tem pesquisas de longo prazo que ficam melhores com o tempo! 🔬',
-   destaque:'#t-lab',acao:"showTab('lab',document.getElementById('t-lab'))"},
-
-  // ── BANCO ──
-  {titulo:'🏦 Banco Verde — seus juros',
-   texto:'Na aba <strong>BANCO</strong> você deposita pontos e recebe <strong>10% ao dia</strong> de juros!<br>Deposita antes de dormir e saca quando acordar — pode quase dobrar!<br>Em 7 dias você quase duplica o valor depositado. 💰',
-   destaque:'#t-banco',acao:"showTab('banco',document.getElementById('t-banco'))"},
-
-  // ── MAPA ──
-  {titulo:'🗺️ Mapa Mundial — restaurar países',
-   texto:'Na aba <strong>MAPA</strong> você restaura 26 países com pontos totais!<br>Começa pelo Brasil (1M de pts totais)!<br>Cada país dá um bônus diferente.<br>O último país (<strong>TERRA UNIDA</strong>) dá Mult ×1000! 🌍',
-   destaque:'#t-mapa',acao:"showTab('mapa',document.getElementById('t-mapa'))"},
-
-  // ── CLAN ──
-  {titulo:'🤝 Clan — jogar em equipe',
-   texto:'Na aba <strong>CLAN</strong> você cria ou entra num grupo!<br>Membros contribuem pontos pra metas coletivas.<br>Tem <strong>RAIDS DE CLAN</strong> — missões que só o grupo junto completa!<br>Dividendos: 5% dos seus juros vão pro clan automaticamente! 💚',
-   destaque:'#t-clan',acao:"showTab('clan',document.getElementById('t-clan'))"},
-
-  // ── RANKING ──
-  {titulo:'🌍 Ranking Global',
-   texto:'Na aba <strong>RANKING</strong> você vê os melhores jogadores do mundo!<br>Seu placar é atualizado automaticamente.<br>Na aba <strong>🌍 RECORDES</strong> você vê os maiores feitos (mais cliques, maior mult, etc).<br>E no <strong>🏆 PLACAR DO DIA</strong> a competição é diária! 📊',
-   destaque:'#t-ranking',acao:"showTab('ranking',document.getElementById('t-ranking'))"},
-
-  // ── GACHA ──
-  {titulo:'🎰 Gacha — caixas misteriosas',
-   texto:'Na aba <strong>GACHA</strong> você abre caixas com animação!<br>A <strong>Caixa Mítica</strong> tem 5% de chance de dar Mult ×100 + 100 🍃!<br>Tem animação de loot box estilo AAA com revelação dramática. 🎁',
-   destaque:'#t-gacha',acao:"showTab('gacha',document.getElementById('t-gacha'))"},
-
-  // ── OVOS ──
-  {titulo:'🥚 Ovos Misteriosos',
-   texto:'Na aba <strong>OVOS</strong> você compra ovos e choca clicando neles!<br>Nasce um pet aleatório com raridade:<br>Comum 50% · Raro 30% · Épico 15% · Lendário 4% · <strong>Mítico 1%</strong>!<br>O pet Mítico dá Mult ×10 + 20 🍃 ao nascer! 🐉',
-   destaque:'#t-ovos',acao:"showTab('ovos',document.getElementById('t-ovos'))"},
-
-  // ── LOJA NOTURNA ──
-  {titulo:'🌙 Loja Noturna — segredo da madrugada',
-   texto:'Na aba <strong>🌙 NOTURNA</strong> tem itens exclusivos!<br>Mas ela só fica disponível <strong>entre 00h e 06h da manhã!</strong><br>Os itens são únicos: Mult ×20, Cristal da Noite, Vela Eterna...<br>Se você jogar de madrugada, vale muito a pena! 🌌',
-   destaque:'#t-noturna',acao:"showTab('noturna',document.getElementById('t-noturna'))"},
-
-  // ── EVENTOS ──
-  {titulo:'⚡ Evento Relâmpago',
-   texto:'De vez em quando aparece um <strong>EVENTO RELÂMPAGO</strong>!<br>Um banner vermelho na tela com uma missão de 1 hora.<br>Completa pra ganhar um bônus enorme!<br>Fique de olho — eles aparecem e somem rapidinho! ⏰',
-   destaque:null,acao:null},
-
-  // ── ROLETA ──
-  {titulo:'🎡 Roleta Verde — 1× por dia',
-   texto:'Viu o botão <strong>🎡 ROLETA</strong> na tela principal?<br>Clica uma vez por dia pra girar!<br>Pode ganhar: Mult, 🍃, pts, boost, Gem Verde...<br>O resultado muda todo dia! 🎊',
-   destaque:'#roletaHudBtn',acao:null},
-
-  // ── ANIVERSÁRIO ──
-  {titulo:'🎂 Modo Aniversário — festa especial!',
-   texto:'Na tela principal você vê os campos de <strong>ANIVERSÁRIO</strong>!<br>Digita seu dia e mês de nascimento e clica SALVAR.<br>No seu aniversário real o jogo:<br>🎉 Enche de confete · 🎂 Dá Mult ×10 · 💰 +10 bilhões de pontos!<br>É a celebração mais especial do jogo! 🥳',
-   destaque:'#anivDia',acao:null},
-
-  // ── JORNADA ──
-  {titulo:'🧑‍🌿 Jornada do Herói',
-   texto:'Na aba <strong>JORNADA</strong> tem uma história em 10 capítulos!<br>Cada capítulo desbloqueia automaticamente conforme você joga.<br>O capítulo final (<strong>A NATUREZA ETERNA</strong>) dá Mult ×1000 + 20 💠 Gems!<br>É a história do Guardião da Natureza — você! 📖',
-   destaque:'#t-jornada',acao:"showTab('jornada',document.getElementById('t-jornada'))"},
-
-  // ── ACADEMIA ──
-  {titulo:'🎓 Academia Verde — aprenda e ganhe',
-   texto:'Na aba <strong>ACADEMIA</strong> tem aulas sobre o jogo!<br>7 módulos, cada um explica uma mecânica diferente.<br>Completa as aulas na ordem e ganha recompensas!<br>Tem dicas secretas em cada módulo que a maioria não sabe! 🤫',
-   destaque:'#t-academia',acao:"showTab('academia',document.getElementById('t-academia'))"},
-
-  // ── MARAVILHAS ──
-  {titulo:'🏛️ Maravilhas do Mundo',
-   texto:'Conforme você acumula pontos totais, <strong>7 monumentos</strong> vão sendo desbloqueados!<br>🇧🇷 Cristo Redentor · 🇨🇳 Muralha · 🇮🇳 Taj Mahal · 🇵🇪 Machu Picchu<br>🇲🇽 Chichen Itza · 🇮🇹 Coliseu · 🇯🇴 Petra (Mult ×50!)<br>Aparecem na aba ÁLBUM quando você desbloqueia! 🌟',
-   destaque:null,acao:null},
-
-  // ── SEGREDOS ──
-  {titulo:'🔮 Segredos e Easter Eggs',
-   texto:'O jogo tem vários segredos escondidos!<br>🕹️ <strong>Código Konami:</strong> ↑↑↓↓←→←→BA no teclado = Mult ×10!<br>🌙 <strong>Jogar às 3h da manhã</strong> = Conquista Madrugador<br>🌚 <strong>Jogar à meia-noite</strong> = bônus surpresa!<br>🎂 <strong>Dia do seu aniversário</strong> = festa com Mult ×10! 🎉',
-   destaque:null,acao:null},
-
-  // ── DICAS FINAIS ──
-  {titulo:'💡 As 10 Melhores Dicas',
-   texto:'1. Refloreste cedo e muitas vezes!<br>2. Deixe pontos no Banco antes de dormir<br>3. Compre pets — eles ajudam 24h por dia<br>4. Ative biomas conforme evolui<br>5. Use a Roleta todo dia<br>6. Cheque a Loja Noturna de madrugada<br>7. Faça combo (clicar rápido) pra +50%<br>8. Complete a Jornada do Herói<br>9. Abra Gaps Míticos no Gacha<br>10. Divirta-se! 🌿',
-   destaque:null,acao:null},
-
-  {titulo:'🎮 Você está pronto, Jojo!',
-   texto:'Agora você conhece todos os sistemas do jogo!<br><br>Este jogo foi criado por <strong style="color:#ffd700;font-size:.8rem;">JOJO</strong> com muito amor e dedicação.<br>São mais de <strong>50 abas</strong>, <strong>400+ boosts</strong>, <strong>1100+ figurinhas</strong> e muito mais!<br><br><strong style="color:#4ade80;">Boa sorte na sua jornada de restaurar o planeta! 🌍</strong>',
-   destaque:null,acao:null},
+  {titulo:'🌿 Bem-vindo ao Clicker Master 2!',texto:'🎮 Olá! Este jogo foi criado pelo <strong style="color:#4ade80;">Jojo</strong> com muito amor!<br>Você vai restaurar o planeta clicando, plantando sementes, comprando boosts e muito mais.<br>Este tutorial cobre <strong>TODAS as funções do jogo</strong>. Vamos lá!',destaque:null,acao:null},
+  {titulo:'👆 O Botão Verde',texto:'O botão verde grande no centro é o coração do jogo!<br>Clique nele pra ganhar pontos.<br>Clicar rápido em sequência faz <strong>COMBO</strong> — combo ×10 dá +10%, combo ×50 dá +50%!<br>No combo ×100 um <strong>raio</strong> cruza a tela ⚡ e no ×200 o botão pega <strong>fogo</strong> 🔥',destaque:'#bigBtn',acao:null},
+  {titulo:'💰 Seus Pontos e Multiplicador',texto:'<strong>Score</strong> = seus pontos atuais<br><strong>PTS/CLICK</strong> = valor de cada clique<br><strong>PTS/SEG</strong> = automático por segundo<br><strong>MULT</strong> = multiplicador de tudo — é o mais importante!<br>⭐ O <strong>bônus de fim de semana</strong> triplica os cliques em sáb e dom!',destaque:'.chips',acao:null},
+  {titulo:'⭐ Sistema de XP',texto:'Cada ação dá XP: comprar boost (+10), colher semente (+5), reflorestar (+100).<br>Cada nível de XP dá <strong>Mult +0,5</strong> permanente!<br>Fique de olho na barra de XP acima da barra de progresso.',destaque:null,acao:null},
+  {titulo:'😀 Avatar e Perfil',texto:'Toque no botão <strong>🌿 AVATAR</strong> pra escolher um emoji como sua foto de perfil.<br>O avatar aparece no ranking global e na tela de estatísticas!',destaque:null,acao:null},
+  {titulo:'🌳 Aba BOOSTS — melhorias permanentes',texto:'Aqui você compra upgrades que ficam pra sempre!<br>Tem mais de <strong>400 boosts</strong> divididos em grupos: Click, Auto e Mult.<br>Compre sempre o mais barato primeiro — eles ficam mais fortes progressivamente!<br>🌙 <strong>Boost Noturno:</strong> comprar entre 0h-6h da manhã dá +50% extra no boost!',destaque:'#t-boosts',acao:"showTab('boosts',document.getElementById('t-boosts'))"},
+  {titulo:'🏛️ Torre de Boosts',texto:'Na aba <strong>🏛️ TORRE</strong> você vê todos os seus boosts empilhados em forma de torre!<br>Quanto mais boosts comprados, mais alta a torre.<br>É uma forma visual de ver seu progresso!',destaque:'#t-torreboosts',acao:"showTab('torreboosts',document.getElementById('t-torreboosts'))"},
+  {titulo:'🌱 Aba SEMENTES — seu jardim',texto:'Compre sementes, plante e espere crescer!<br>Quando a barra encher, clique pra <strong>colher</strong> e ganhar pontos.<br>Sementes mais raras valem muito mais — a <strong>💎 Diamante</strong> vale 1 quintilhão!<br>O jardim tem até 12 slots expansíveis.',destaque:'#t-seeds',acao:"showTab('seeds',document.getElementById('t-seeds'))"},
+  {titulo:'🌿 Tipos de Sementes Especiais',texto:'Sementes especiais aparecem em condições únicas:<br>🌙 <strong>Noturna</strong> — só cresce de noite<br>🌌 <strong>Cósmica</strong> — bioma espaço + noite<br>⚡ <strong>Relâmpão</strong> — pronta em 1 segundo mas some se não colher!<br>🌬️ <strong>Vento</strong> — ao colher voa pra outro slot e replanta<br>🧫 <strong>Viral</strong> — ao colher planta mais 3 iguais!<br>♾️ <strong>Infinita</strong> — nunca para de crescer, acumula até você clicar',destaque:null,acao:null},
+  {titulo:'🌿 Jardim Secreto',texto:'Na aba <strong>🌿 JARDIM SECRETO</strong> tem 3 slots exclusivos!<br>Lá você pode <strong>cruzar 2 sementes</strong> pra criar novas:<br>🔀 Fusão · 💥 Épica Plus · 🌌 Cósmica · 🌈 Arco-Íris<br>Custa 1 bilhão pra desbloquear cada cruzamento!',destaque:'#t-jardimsecreto',acao:"showTab('jardimsecreto',document.getElementById('t-jardimsecreto'))"},
+  {titulo:'🌙 Jardim da Lua',texto:'O jardim normal fica <strong>3× mais rápido entre 18h e 6h</strong> da manhã!<br>Se quiser turbinar as sementes, plante de noite antes de dormir — elas crescem super rápido até o dia seguinte. 🌙',destaque:null,acao:null},
+  {titulo:'🍃 Reflorestar — a jogada mais importante!',texto:'Na aba <strong>REFLORESTAR</strong> você faz o prestige!<br>Troca seus pontos por folhas 🍃 — cada folha = <strong>+10% Mult permanente</strong>!<br>Vale muito a pena reflorestar cedo e muitas vezes. Não acumule pontos demais!',destaque:'#t-pres',acao:"showTab('pres',document.getElementById('t-pres'))"},
+  {titulo:'💥 Super Prestige e Mega Prestige',texto:'<strong>Super Prestige</strong> (20 reflorestamentos) — reseta score + boosts mas dá Mult ×20 + 50 🍃!<br><strong>Mega Prestige</strong> (100 reflorestamentos) — ainda mais poderoso: Mult ×15 + 100 🍃!<br>Ambos ficam na parte inferior da aba Reflorestar.',destaque:null,acao:null},
+  {titulo:'🌿 Árvore de Habilidades',texto:'Na aba <strong>HABILIDADES</strong> você gasta pontos de habilidade (ganhos ao reflorestar)!<br>Tem 3 ramos: Natureza (click), Oceano (auto) e Espaço (mult).<br>Complete todos pra um bônus final enorme!',destaque:'#t-skills',acao:"showTab('skills',document.getElementById('t-skills'))"},
+  {titulo:'📅 Missões Diárias',texto:'Na aba <strong>DIÁRIAS</strong> tem missões novas todo dia!<br>Complete todas pra ganhar bônus automático.<br>Renovam toda meia-noite — não pule o dia!',destaque:'#t-daily',acao:"showTab('daily',document.getElementById('t-daily'))"},
+  {titulo:'📆 Missões Semanais',texto:'Na aba <strong>SEMANAIS</strong> tem 6 missões maiores que renovam toda segunda-feira!<br>São mais difíceis mas dão recompensas melhores.<br>Missão de prestige semanal? Vai exigir dedicação! 🍃',destaque:'#t-weekly',acao:"showTab('weekly',document.getElementById('t-weekly'))"},
+  {titulo:'⏱️ Missão da Hora',texto:'Na aba <strong>DIÁRIAS</strong> tem também uma <strong>Missão da Hora</strong> que muda a cada hora!<br>Complete em 60 minutos pra ganhar o prêmio. É cronometrada!',destaque:null,acao:null},
+  {titulo:'📜 Sistema de Quests',texto:'Na aba <strong>📜 QUESTS</strong> tem 4 missões épicas que levam dias pra completar!<br>Cada quest tem vários passos e conta uma história.<br>A quest final "O Guardião Eterno" leva 30 dias mas vale muito!',destaque:'#t-quests',acao:"showTab('quests',document.getElementById('t-quests'))"},
+  {titulo:'🏆 Conquistas e Troféus',texto:'Na aba <strong>CONQUISTAS</strong> você ganha troféus automaticamente!<br>Tem conquistas <strong>secretas</strong> que o jogo não conta — você descobre jogando! 🔮<br>Ao desbloquear uma conquista especial aparece um <strong>badge animado</strong> no centro da tela!',destaque:'#t-ms',acao:"showTab('ms',document.getElementById('t-ms'))"},
+  {titulo:'💯 Conquista do Centenário',texto:'Ao desbloquear <strong>100 conquistas</strong>, você ganha o troféu mais raro do jogo!<br>Vale Mult ×10 + 50 🍃 + 10 💠 Gems.<br>Conquistas ocultas secretas também contam — procure todas!',destaque:null,acao:null},
+  {titulo:'🌙 Conquistas por Horário',texto:'Alguns bônus secretos aparecem em horários especiais:<br>🌙 <strong>Madrugador</strong> — jogue entre 3h-4h = Mult +3<br>🌚 <strong>Meia-Noite</strong> — jogue às 0h = Mult +25 + Click bônus<br>🎆 <strong>Réveillon</strong> — jogue em 31/12 = Mult +31 + 31 🍃<br>🎂 <strong>Aniversário do Jogo</strong> — 2 de agosto = visual especial',destaque:null,acao:null},
+  {titulo:'🏅 Sistema de Ranks e Sub-ranks',texto:'Na aba <strong>RANK</strong> você sobe de:<br>⬜ Ferro I→III → 🟫 Bronze → Prata → Ouro → Platina → 💎 Diamante → Mestre → Grão-Mestre → ⚡ Lendário → 🌟 Imortal → 🌿 Deus da Natureza → ♾️ RANK S!<br>Dentro de cada rank tem <strong>sub-ranks I, II e III</strong>!',destaque:'#t-ranks',acao:"showTab('ranks',document.getElementById('t-ranks'))"},
+  {titulo:'🌍 Biomas — ambientes especiais',texto:'Na aba <strong>BIOMAS</strong> você ativa diferentes ambientes com bônus únicos!<br>🌿 Floresta · 🌊 Oceano · 🌋 Montanha · 🌌 Espaço · 🦁 Savana<br>🌋 Vulcão (Click ×5) · ❄️ Ártico (Auto ×3 + Aurora) · 🏜️ Deserto (Click+Auto ×2)<br>⛏️ Subterrâneo · 🦑 Oceano Profundo · ☁️ Nuvens · 🌀 Interdimensional',destaque:'#t-biomas',acao:"showTab('biomas',document.getElementById('t-biomas'))"},
+  {titulo:'🚀 Modo Gravidade Zero',texto:'No bioma Espaço, o botão começa a <strong>flutuar pela tela</strong>!<br>Você precisa clicar nele enquanto ele se move — desafiador mas divertido!<br>🌌 Eventos de Nebulosa e Supernova só aparecem no bioma Espaço.',destaque:null,acao:null},
+  {titulo:'🎭 Modos de A a Z',texto:'Na aba <strong>MODOS</strong> tem 26 modos — um pra cada letra do alfabeto!<br>💧A=Água · 🌲B=Bosque · 🌧️C=Chuva · 🌟D=Dourado · ⭐E=Estelar · 🔥F=Fogo<br>❄️G=Gelo · ☯️H=Harmonia · ♾️I=Infinito · 💎J=Joia · 🕉️K=Karma · ✨L=Luz<br>🎵M=Música · 🌙N=Noturno · 🌊O=Oceano · 🌿P=Planta · ⚛️Q=Quântico<br>⚡R=Raio · 🐾S=Selva · 🌩️T=Trovão · 🔮U=Ultra · 🌋V=Vulcão<br>🌬️W=Vento · 🔵X=Xênon · 🧘Y=Yoga · ☮️Z=Zen (Mult ×10!)',destaque:'#t-modes',acao:"showTab('modes',document.getElementById('t-modes'))"},
+  {titulo:'💡 Modos Visuais Especiais',texto:'Além dos modos A-Z, tem modos que mudam o visual do jogo:<br>💡 <strong>Neon</strong> — visual brilhante anos 80<br>🎨 <strong>Pixel Art</strong> — visual 8-bit retro<br>🕺 <strong>Retro</strong> — estilo anos 90 em verde<br>💧 <strong>Água</strong> — tela submersa com bolhas<br>🌑 <strong>Modo Noturno</strong> — tela escura pra jogar de madrugada<br>Ative pelo botão 🌙 na tela principal!',destaque:null,acao:null},
+  {titulo:'🐾 Pets — seus aliados',texto:'Na aba <strong>PETS</strong> você compra criaturas que ajudam 24h por dia!<br>🐝 Abelha → auto · 🦋 Borboleta → dobra 10 cliques · 🦁 Leão → rugido 5min<br>🧜 Sereia → bônus oceano · 🐉 Dragão Bebê → evolui em 5 níveis<br>🦄 Unicórnio · 🧚 Fada (sementes 3×) · 🐺 Lobo da Lua (10× de noite)<br>🗿 Golem · 🐈 Gato Cósmico · 🐙 Polvo · 🦕 Dinossauro · 🤖 Robot Verde',destaque:'#t-pets',acao:"showTab('pets',document.getElementById('t-pets'))"},
+  {titulo:'🔬 Laboratório de Pets',texto:'Na aba <strong>🔬 LAB PETS</strong> você combina 2 pets pra criar um híbrido!<br>Exemplos de combinações:<br>🦁+🐉 = Rei Dragão · 🦋+🐝 = Abelha Dourada · 🧜+🐢 = Tartaruga Mágica<br>Tente todas as combinações!',destaque:'#t-labpets',acao:"showTab('labpets',document.getElementById('t-labpets'))"},
+  {titulo:'🥚 Ovos Misteriosos',texto:'Na aba <strong>OVOS</strong> você compra ovos e choca clicando neles!<br>Raridade: Comum 50% · Raro 30% · Épico 15% · Lendário 4% · <strong>Mítico 1%</strong><br>O pet Mítico dá Mult ×3 + 20 🍃 ao nascer!',destaque:'#t-ovos',acao:"showTab('ovos',document.getElementById('t-ovos'))"},
+  {titulo:'📒 Álbum de Figurinhas',texto:'Na aba <strong>ÁLBUM</strong> você coleciona mais de <strong>1.100 criaturas</strong>!<br>Cada figurinha desbloqueia automaticamente conforme você joga.<br>Algumas dão bônus ao ser descobertas — procure todas!',destaque:'#t-album',acao:"showTab('album',document.getElementById('t-album'))"},
+  {titulo:'🧑‍🌿 Jornada do Herói',texto:'Na aba <strong>🧑‍🌿 JORNADA</strong> tem uma história em 10 capítulos!<br>Cada capítulo desbloqueia automaticamente conforme você avança.<br>Ao completar o capítulo 10, você recebe uma <strong>💌 carta especial</strong> da Natureza!',destaque:'#t-jornada',acao:"showTab('jornada',document.getElementById('t-jornada'))"},
+  {titulo:'📚 História em Quadrinhos',texto:'Na aba <strong>📚 HQ</strong> tem a história do Guardião da Natureza em 10 páginas!<br>Use as setas pra navegar entre as páginas.<br>As miniaturas na parte inferior permitem pular direto pra qualquer página.',destaque:'#t-quadrinhos',acao:"showTab('quadrinhos',document.getElementById('t-quadrinhos'))"},
+  {titulo:'🎓 Academia Verde',texto:'Na aba <strong>ACADEMIA</strong> tem aulas sobre o jogo!<br>7 módulos, cada um explica uma mecânica diferente com recompensas.<br>Tem dicas secretas em cada módulo que a maioria não sabe! 🤫',destaque:'#t-academia',acao:"showTab('academia',document.getElementById('t-academia'))"},
+  {titulo:'⚗️ Laboratório de Pesquisa',texto:'Na aba <strong>LAB</strong> você faz pesquisas e upgrades especiais!<br>Investiga tecnologias que não existem nos boosts normais.<br>As pesquisas de longo prazo ficam mais fortes com o tempo!',destaque:'#t-lab',acao:"showTab('lab',document.getElementById('t-lab'))"},
+  {titulo:'🏦 Banco Verde',texto:'Na aba <strong>BANCO</strong> você deposita pontos e recebe <strong>juros diários</strong>!<br>Deposita antes de dormir, saca quando acordar.<br>Dividendos do clan também vão pro banco automaticamente!',destaque:'#t-banco',acao:"showTab('banco',document.getElementById('t-banco'))"},
+  {titulo:'🗺️ Mapa Mundial — 26 países',texto:'Na aba <strong>MAPA</strong> você restaura 26 países com pontos totais!<br>O último país (TERRA UNIDA) dá Mult ×30!<br>Além dos países, tem <strong>5 planetas secretos</strong> no espaço (Marte→Netuno)!',destaque:'#t-mapa',acao:"showTab('mapa',document.getElementById('t-mapa'))"},
+  {titulo:'🏛️ Maravilhas do Mundo',texto:'Conforme você acumula pontos, 7 monumentos vão sendo desbloqueados:<br>🇧🇷 Cristo Redentor · 🇨🇳 Muralha · 🇮🇳 Taj Mahal · 🇵🇪 Machu Picchu<br>🇲🇽 Chichen Itza · 🇮🇹 Coliseu · 🇯🇴 Petra<br>Cada um dá um bônus único! Aparecem no Álbum quando desbloqueados.',destaque:null,acao:null},
+  {titulo:'🤝 Clan — jogar em equipe',texto:'Na aba <strong>CLAN</strong> você cria ou entra num grupo!<br>Membros contribuem pontos em Raids coletivos.<br>A <strong>Árvore do Clan</strong> cresce com contribuições (🌰→🌱→🌿→🌴→🌲→🌳).<br>O <strong>Mural do Clan</strong> permite deixar mensagens pra os membros!',destaque:'#t-clan',acao:"showTab('clan',document.getElementById('t-clan'))"},
+  {titulo:'🏰 Jornada do Clan',texto:'O clan tem missões coletivas na <strong>Jornada do Clan</strong>!<br>Todos os membros jogam juntos pra completar a história.<br>Clan que chega ao nível 50 vira <strong>LENDÁRIO</strong> e aparece em destaque no ranking global!',destaque:null,acao:null},
+  {titulo:'🌍 Ranking e Recordes',texto:'Na aba <strong>RANKING</strong> você vê os melhores jogadores do mundo!<br><strong>Placar do Dia</strong> — quem ganhou mais pts hoje<br><strong>Recordes Mundiais</strong> — maiores feitos de todos os tempos<br><strong>Hall da Fama</strong> — os lendários do jogo',destaque:'#t-ranking',acao:"showTab('ranking',document.getElementById('t-ranking'))"},
+  {titulo:'🎰 Gacha e Leilão',texto:'Na aba <strong>GACHA</strong> você abre caixas com animação!<br>A Caixa Mítica tem chance de dar Mult e 🍃 extras.<br>Na aba <strong>LEILÃO</strong> você compete por itens raros com outros jogadores!',destaque:'#t-gacha',acao:"showTab('gacha',document.getElementById('t-gacha'))"},
+  {titulo:'🌙 Loja Noturna',texto:'Na aba <strong>🌙 NOTURNA</strong> tem itens exclusivos que só aparecem <strong>entre 0h e 6h</strong>!<br>Os itens não existem em nenhuma outra loja.<br>Se você jogar de madrugada, não perca!',destaque:'#t-noturna',acao:"showTab('noturna',document.getElementById('t-noturna'))"},
+  {titulo:'🛒 Loja do Dia',texto:'Na aba <strong>🛒 LOJA DO DIA</strong> tem 3 itens novos todo dia que somem à meia-noite!<br>Os itens são escolhidos aleatoriamente — verifique diariamente pra não perder!',destaque:'#t-lojadia',acao:"showTab('lojadia',document.getElementById('t-lojadia'))"},
+  {titulo:'💠 Loja de Gem Verde',texto:'Na aba <strong>💠 GEMS</strong> você gasta Gems Verdes em itens exclusivos!<br>Gems aparecem em eventos, aniversários e conquistas especiais.<br>A Loja tem 10 itens, incluindo evoluir o Dragão e restaurar países!',destaque:'#t-gems',acao:"showTab('gems',document.getElementById('t-gems'))"},
+  {titulo:'🔄 Loja de Trocas',texto:'Na aba <strong>🔄 TROCAS</strong> você pode trocar recursos por outros!<br>Exemplos: 10 🍃 por Mult ×3 · 100M pts por 1 💠 Gem · 1 💠 por Mult ×10<br>Escolha com sabedoria — cada troca é irreversível!',destaque:'#t-trocas',acao:"showTab('trocas',document.getElementById('t-trocas'))"},
+  {titulo:'🎡 Roleta Verde e Roda da Fortuna',texto:'🎡 <strong>Roleta Verde</strong> — grátis 1× por dia! Toque no botão na tela principal.<br>🎡 <strong>Roda da Fortuna Semanal</strong> — 20 prêmios, 1× por semana!<br>Ambas têm prêmios que vão de pontos a Gems e Mult extra!',destaque:null,acao:null},
+  {titulo:'🎂 Modo Aniversário',texto:'Na tela principal você vê os campos de <strong>MEU ANIVERSÁRIO</strong>!<br>Coloca seu dia e mês. No seu aniversário real:<br>🎉 Confete explode · Mult ×10 · +10 bilhões de pontos · +10 💠 Gems!<br><strong>Aniversário do Jogo</strong>: 2 de agosto — algo especial acontece!',destaque:null,acao:null},
+  {titulo:'⚡ Eventos Aleatórios Automáticos',texto:'Enquanto você joga, eventos aparecem sozinhos:<br>⚡ <strong>Relâmpago</strong> — missão de 1 hora com bônus<br>☄️ <strong>Meteoros</strong> — clique nos meteoros pra pontos!<br>🌩️ <strong>Tempestade</strong> — Auto ×2 por 90 segundos<br>🌊 <strong>Tsunami</strong> — acumula 3 min de auto<br>🌑 <strong>Eclipse</strong> — Click ×3 por 5 minutos<br>💥 <strong>Supernova</strong> — Mult ×10 no espaço (10 seg!)<br>🎉 <strong>Festival Verde</strong> — Mult ×2 por 2h (muito raro)<br>👽 <strong>Invasão Alienigéna</strong> — defenda o planeta clicando nos aliens!',destaque:null,acao:null},
+  {titulo:'👫 Recados e Amigos',texto:'Na aba <strong>RECADOS</strong> você pode mandar mensagens pra outros jogadores via Firebase!<br>Na aba <strong>AMIGOS</strong> você vê o placar só dos seus amigos.<br>Em <strong>JARDIM AMIGO</strong> você pode ver o jardim de outros jogadores em tempo real!',destaque:'#t-recados',acao:"showTab('recados',document.getElementById('t-recados'))"},
+  {titulo:'🎨 Personalização Visual',texto:'Vários ajustes de visual disponíveis na tela principal:<br>🌙 <strong>Noturno</strong> — tela escura<br>👁️ <strong>Daltônico</strong> — alto contraste<br>☁️ <strong>Nuvem</strong> — salvar na nuvem (Firebase)<br>Na aba <strong>🎨 SKINS</strong> você troca o emoji do botão verde!',destaque:'#t-skins',acao:"showTab('skins',document.getElementById('t-skins'))"},
+  {titulo:'🖼️ Skins de Fundo',texto:'Na aba <strong>FUNDOS</strong> você escolhe o fundo da tela:<br>Noite Estrelada · Aurora Boreal · Vulcão · Oceano · Galáxia · Dourado · Arco-Íris<br>Cada fundo muda o visual da tela toda!',destaque:'#t-fundos',acao:"showTab('fundos',document.getElementById('t-fundos'))"},
+  {titulo:'🔊 Sons Personalizados',texto:'Na aba <strong>🔊 SONS</strong> você escolhe o som do clique:<br>🌿 Padrão · 🫧 Pop · 🔔 Sino · ⚡ Laser · 🌧️ Gota · 💻 Digital<br>Clique em cada um pra testar antes de ativar!<br>🎶 Na tela principal tem um botão pra ativar a <strong>Música Tema</strong>!',destaque:'#t-sons',acao:"showTab('sons',document.getElementById('t-sons'))"},
+  {titulo:'📝 Caderno de Notas',texto:'Na aba <strong>📝 NOTAS</strong> você pode escrever textos pessoais!<br>Até 2000 caracteres, salvo no jogo.<br>Ideal pra anotar estratégias, recordes ou o que quiser!',destaque:'#t-notas',acao:"showTab('notas',document.getElementById('t-notas'))"},
+  {titulo:'🎒 Mochila do Aventureiro',texto:'Na aba <strong>🎒 MOCHILA</strong> tem seu inventário estilo RPG!<br>20 slots organizados em: Poções · Sementes · Equipamentos · Especiais.<br>Items como o Colar do Herói aparecem aqui quando equipados!',destaque:'#t-mochila',acao:"showTab('mochila',document.getElementById('t-mochila'))"},
+  {titulo:'🕺 Porão Secreto',texto:'A aba <strong>🕺 PORÃO</strong> só aparece <strong>após 50 reflorestamentos</strong>!<br>Tem 5 itens com poderes absurdos — Máscara das Sombras, Orbe Proibida...<br>Guarda seus melhores pontos pra comprar aqui!',destaque:'#t-porao',acao:"showTab('porao',document.getElementById('t-porao'))"},
+  {titulo:'🎮 Mini Snake',texto:'Na aba <strong>🎮 MINI JOGO</strong> tem um Snake jogável!<br>Cada comida que você pega vale <strong>1.000 pontos reais</strong> no jogo!<br>Controle pelo teclado (setas) ou toque nas bordas do canvas!',destaque:'#t-minigame',acao:"showTab('minigame',document.getElementById('t-minigame'))"},
+  {titulo:'📊 Estatísticas e Backup',texto:'Na aba <strong>📊 STATS</strong> você vê:<br>⏱️ Horas jogadas · 👆 Total de cliques · 🌱 Sementes colhidas · 🗺️ Países<br>Um gráfico de barras mostrando sua evolução ao longo do tempo.<br>E botões pra <strong>salvar e carregar</strong> seu progresso na nuvem Firebase!',destaque:'#t-stats',acao:"showTab('stats',document.getElementById('t-stats'))"},
+  {titulo:'⏱️ Modo Speedrun',texto:'Na aba <strong>⏱️ SPEEDRUN</strong> você cronometra quanto tempo leva pra ganhar X pontos a partir do momento que você inicia!<br>Metas: 1 Trilhão · 1 Quadrilhão · 1 Quintilhão · 1 Sextilhão<br>Seus recordes ficam salvos — tente bater!',destaque:'#t-speedrun',acao:"showTab('speedrun',document.getElementById('t-speedrun'))"},
+  {titulo:'🖼️ Poster e Foto',texto:'Na aba <strong>🖼️ POSTER</strong> você gera uma imagem com seu nome, rank e stats pra compartilhar!<br>Clique em <strong>📸 Foto do Jardim</strong> no mural pra tirar uma foto do seu jardim como PNG.<br>Ambos baixam automaticamente!',destaque:'#t-poster',acao:"showTab('poster',document.getElementById('t-poster'))"},
+  {titulo:'📚 Bíblia da Natureza',texto:'Na aba <strong>📚 BÍBLIA</strong> tem a enciclopédia completa do jogo!<br>Sementes, Pets, Biomas e Modos — tudo documentado com ícone e descrição.<br>Consulte quando quiser saber sobre um elemento específico!',destaque:'#t-biblia',acao:"showTab('biblia',document.getElementById('t-biblia'))"},
+  {titulo:'♾️ Nível Eterno e Rank S',texto:'Com 1000 reflorestamentos você vira <strong>ETERNO</strong>!<br>O <strong>Rank S ♾️</strong> é o rank supremo — só quem zerar completamente o jogo chega lá.<br>Após o Rank S, o <strong>Modo Deus da Natureza</strong> fica disponível!',destaque:null,acao:null},
+  {titulo:'👑 Modo Legado e Modo Deus',texto:'Após zerar o jogo (todos países + Rank S + Jornada + todos troféus):<br>👑 <strong>Modo Legado</strong> — visual dourado e Mult ×10 extra<br>🌍 <strong>Modo Deus da Natureza</strong> — um botão especial aparece nos Modos, tudo fica absurdo!',destaque:null,acao:null},
+  {titulo:'🌿 Planeta Secreto — 5 planetas',texto:'Além dos 26 países, há <strong>5 planetas no espaço</strong> pra restaurar!<br>🔴 Marte → 🟠 Júpiter → 🪐 Saturno → 🔵 Urano → 💜 Netuno<br>Cada um requer pontos totais cada vez maiores mas dá bônus permanentes!',destaque:null,acao:null},
+  {titulo:'🔮 Segredos e Easter Eggs',texto:'O jogo tem segredos escondidos:<br>🕹️ <strong>Código Konami</strong>: ↑↑↓↓←→←→BA no teclado = Mult ×10 + bônus<br>🎁 <strong>Modo Surpresa</strong>: 1% de chance ao abrir o jogo = modo aleatório por 5 min<br>🦅 <strong>Pássaros Raros</strong>: aparecem voando na tela — clique pra ganhar pontos!<br>🌌 <strong>Nebulosa</strong>: aparece automaticamente no bioma Espaço',destaque:null,acao:null},
+  {titulo:'💡 As Melhores Dicas',texto:'1. Refloreste cedo e muitas vezes!<br>2. Deposite no Banco antes de dormir<br>3. Compre pets — ajudam 24h<br>4. Verifique a Loja do Dia todo dia<br>5. Use a Roleta Verde diariamente<br>6. Confira a Loja Noturna entre 0h-6h<br>7. Plante sementes à noite (Jardim da Lua 3×)<br>8. Complete a Jornada do Herói<br>9. O Código Konami é real — tente!<br>10. Divirta-se e jogue no seu ritmo! 🌿',destaque:null,acao:null},
+  {titulo:'🎮 Tutorial Concluído, Guardião!',texto:'Você conhece agora <strong>TODAS as funções</strong> do Clicker Master 2: Natureza!<br><br>Este jogo foi criado por <strong style="color:#ffd700;font-size:.85rem;">JOJO</strong> com muito amor, dedicação e imaginação.<br><br>São <strong>60+ abas</strong>, <strong>400+ boosts</strong>, <strong>1100+ figurinhas</strong>, <strong>26 países + 5 planetas</strong>, <strong>50+ eventos</strong> e muito mais!<br><br><strong style="color:#4ade80;">Boa sorte na sua missão de restaurar o planeta! 🌍</strong>',destaque:null,acao:null},
 ];
 
 let tutorialPasso = 0;
@@ -7697,13 +7615,13 @@ async function carregarNuvem(){
 const GEMS_LOJA_FULL=[
   {icon:'⚡',nome:'Boost Ultra',custo:1,fn:()=>{globalMult*=10;},desc:'Mult ×10 permanente'},
   {icon:'🌟',nome:'3 Sementes Lendárias',custo:2,fn:()=>{addToInventario('semente_lend',3);},desc:'3 sementes lendárias prontas'},
-  {icon:'💫',nome:'Super Mult',custo:3,fn:()=>{globalMult*=50;},desc:'Mult ×50 permanente'},
+  {icon:'💫',nome:'Super Mult',custo:3,fn:()=>{globalMult*=5;},desc:'Mult ×5 permanente'},
   {icon:'🌿',nome:'100 Folhas',custo:5,fn:()=>{prestigeStars+=100;},desc:'+100 🍃 permanente'},
   {icon:'🐉',nome:'Evolução de Dragão',custo:5,fn:()=>{if(dragaoNivel<5){dragaoNivel++;localStorage.setItem('cmnDragaoNivel',String(dragaoNivel));autoPerSec+=DRAGAO_BONUS[dragaoNivel];updateUI();verificarDragaoAdulto();}},desc:'Evolui o Dragão 1 nível'},
   {icon:'🔥',nome:'Modo 2× Velocidade',custo:3,fn:()=>{addToInventario('modo2x',1);},desc:'Item: tudo 2× por 1 minuto'},
-  {icon:'🌌',nome:'Gem Power MAX',custo:10,fn:()=>{globalMult*=1000;prestigeStars+=50;},desc:'Mult ×1000 + 50 🍃'},
+  {icon:'🌌',nome:'Gem Power MAX',custo:10,fn:()=>{globalMult*=5;prestigeStars+=10;},desc:'Mult ×5 + 10 🍃'},
   {icon:'💎',nome:'Reset de Speedrun',custo:1,fn:()=>{speedrunRecordes=[];localStorage.removeItem('cmnSpeedrunRecordes');},desc:'Limpa recordes de speedrun'},
-  {icon:'🏆',nome:'Troféu Secreto',custo:15,fn:()=>{globalMult*=100;launchConfetti();launchConfetti();},desc:'Mult ×100 + confete épico!'},
+  {icon:'🏆',nome:'Troféu Secreto',custo:15,fn:()=>{globalMult*=8;launchConfetti();},desc:'Mult ×8 + confete!'},
   {icon:'🌍',nome:'Restaurar 3 Países',custo:8,fn:()=>{let c=0;WORLD_COUNTRIES.forEach((ct,i)=>{if(!mapaUnlocked.has(i)&&c<3){mapaUnlocked.add(i);try{ct.fn();}catch(e){}c++;}});},desc:'Desbloqueia 3 países no mapa'},
 ];
 function renderGemsLoja(){
@@ -8100,8 +8018,8 @@ function equiparColar(){
   if(gemVerdes<20){toast('Precisa de 20 💠 Gems pra comprar o colar!','red');return;}
   gemVerdes-=20;localStorage.setItem('cmnGemVerdes',String(gemVerdes));
   colarEquipado=true;localStorage.setItem('cmnColar','1');
-  globalMult*=1.5;clickPower*=1.5;autoPerSec*=1.5;updateUI();
-  sfx('prestige');toast('🧴 COLAR DO HERÓI equipado! Todos bônus +50%!','rainbow');launchConfetti();
+  globalMult*=1.2;clickPower*=1.2;autoPerSec*=1.2;updateUI();
+  sfx('prestige');toast('🧴 COLAR DO HERÓI equipado! Todos bônus +20%!','rainbow');launchConfetti();
 }
 
 // ══════════════════════════════════════════════════════
@@ -8146,7 +8064,7 @@ function superPrestige(){
   if(prestigeCount<20){toast('Precisa de 20 reflorestamentos pra Super Prestige!','red');return;}
   if(!confirm('SUPER PRESTIGE? Zera tudo mas ganha Mult ×1000 + 500 🍃!'))return;
   score=0;totalEarned=0;owned.clear();
-  globalMult*=1000;prestigeStars+=500;prestigeCount=0;
+  globalMult*=20;prestigeStars+=50;prestigeCount=0;
   updateUI();renderBoosts();sfx('prestige');launchConfetti();launchConfetti();
   toast('💥 SUPER PRESTIGE! Mult ×1000 + 500 🍃!!!','rainbow');
 }
@@ -8211,11 +8129,11 @@ function renderMochila(){
 // 🕺 PORÃO SECRETO
 // ══════════════════════════════════════════════════════
 const PORAO_ITEMS=[
-  {icon:'🎃',nome:'Máscara das Sombras',rew:()=>{clickPower*=100;},rewL:'Click ×100',custo:()=>1e15},
-  {icon:'💀',nome:'Osso do Abismo',rew:()=>{autoPerSec*=200;},rewL:'Auto ×200',custo:()=>1e16},
-  {icon:'🌑',nome:'Pedra Negra',rew:()=>{globalMult*=500;},rewL:'Mult ×500',custo:()=>1e17},
+  {icon:'🎃',nome:'Máscara das Sombras',rew:()=>{clickPower*=10;},rewL:'Click ×10',custo:()=>1e15},
+  {icon:'💀',nome:'Osso do Abismo',rew:()=>{autoPerSec*=10;},rewL:'Auto ×10',custo:()=>1e16},
+  {icon:'🌑',nome:'Pedra Negra',rew:()=>{globalMult*=20;},rewL:'Mult ×20',custo:()=>1e17},
   {icon:'⛓️',nome:'Corrente Antiga',rew:()=>{prestigeStars+=1000;},rewL:'+1000 🍃',custo:()=>1e18},
-  {icon:'🔮',nome:'Orbe Proibida',rew:()=>{globalMult*=10000;launchConfetti();},rewL:'Mult ×10.000!!!',custo:()=>1e20},
+  {icon:'🔮',nome:'Orbe Proibida',rew:()=>{globalMult*=50;launchConfetti();},rewL:'Mult ×50',custo:()=>1e20},
 ];
 let poraoBought=new Set(JSON.parse(localStorage.getItem('cmnPoraoBought')||'[]'));
 function renderPorao(){
@@ -8436,17 +8354,17 @@ const RODA_PREMIOS=[
   {icon:'🎁',label:'Item surpresa',fn:()=>{addToInventario('mega_boost',2);}},
   {icon:'💎',label:'Mult ×5',fn:()=>{globalMult*=5;}},
   {icon:'🔥',label:'+100M pts',fn:()=>{score+=1e8;totalEarned+=1e8;}},
-  {icon:'🌟',label:'Mult ×10',fn:()=>{globalMult*=10;}},
+  {icon:'🌟',label:'Mult ×3',fn:()=>{globalMult*=3;}},
   {icon:'🍃',label:'+50 🍃',fn:()=>{prestigeStars+=50;}},
   {icon:'🐾',label:'+1B/seg',fn:()=>{autoPerSec+=1e9;}},
   {icon:'🌈',label:'Mult +50',fn:()=>{globalMult+=50;}},
-  {icon:'👑',label:'Mult ×20',fn:()=>{globalMult*=20;}},
-  {icon:'💫',label:'+100 Gems',fn:()=>{addGem(100);toast('WOW 100 Gems!','rainbow');}},
-  {icon:'🎰',label:'Jackpot! ×100',fn:()=>{globalMult*=100;launchConfetti();launchConfetti();}},
+  {icon:'👑',label:'Mult ×5',fn:()=>{globalMult*=5;}},
+  {icon:'💫',label:'+5 Gems',fn:()=>{addGem(5);}},
+  {icon:'🎰',label:'Jackpot! ×8',fn:()=>{globalMult*=8;launchConfetti();}},
   {icon:'🌱',label:'Jardim cheio',fn:()=>{garden.forEach((_,i)=>{if(!garden[i])garden[i]={seedId:'sd4',plantedAt:0};});saveGarden();renderGardenAnimated();}},
   {icon:'⚗️',label:'Caixa Mítica',fn:()=>{addToInventario('mega_boost',5);}},
-  {icon:'🔮',label:'Mult ×50',fn:()=>{globalMult*=50;}},
-  {icon:'♾️',label:'ULTRA: Mult ×1000',fn:()=>{globalMult*=1000;launchConfetti();launchConfetti();launchConfetti();sfx('prestige');}},
+  {icon:'🔮',label:'Mult ×4',fn:()=>{globalMult*=4;}},
+  {icon:'♾️',label:'ULTRA: Mult ×15',fn:()=>{globalMult*=15;launchConfetti();sfx('prestige');}},
 ];
 let rodaLastSpin=localStorage.getItem('cmnRodaLast')||'';
 function getWeekKey(){const d=new Date();return d.getFullYear()+'-W'+Math.ceil((d.getDate()+6-d.getDay())/7);}
@@ -8534,11 +8452,11 @@ function getPersonagemVisual(){
     const horas=ausente/3600000;
     if(horas>=1){
       // Max 1 ano = 8760h
-      const bonus=Math.min(horas,8760);
-      const multBonus=1+bonus*0.01; // 1% por hora até 1 ano = max +8760%
+      const bonus=Math.min(horas,48);
+      const multBonus=1+bonus*0.02; // 1% por hora até 1 ano = max +8760%
       globalMult*=multBonus;
-      const label=horas>=8760?'1 ANO':horas>=24?Math.floor(horas/24)+'d':Math.floor(horas)+'h';
-      toast('👋 BEM-VINDO DE VOLTA! Ausente '+label+' = Mult ×'+multBonus.toFixed(1)+'!','rainbow');
+      const label=horas>=48?'48h (máx)':horas>=24?Math.floor(horas/24)+'d':Math.floor(horas)+'h';
+      toast('👋 BEM-VINDO DE VOLTA! Ausente '+label+' = Mult ×'+multBonus.toFixed(2)+'!','rainbow');
       launchConfetti();sfx('prestige');
     }
   }
@@ -8721,7 +8639,7 @@ function checkConquistaCentenario(){
   if(localStorage.getItem('cmnCentenario'))return;
   if(earnedTrofeus.size>=100){
     localStorage.setItem('cmnCentenario','1');
-    globalMult*=1000;prestigeStars+=1000;addGem(100);updateUI();
+    globalMult*=10;prestigeStars+=50;addGem(10);updateUI();
     sfx('prestige');launchConfetti();launchConfetti();launchConfetti();
     showBadgeConquista('💯','CENTENÁRIO!','100 conquistas! Mult ×1000 + 1000 🍃 + 100 💠!!!');
   }
@@ -8739,14 +8657,14 @@ function ativarModoLegado(){
   document.documentElement.style.setProperty('--accent','#ffd700');
   document.documentElement.style.setProperty('--accent2','#ffaa00');
   document.documentElement.style.setProperty('--glow1','#ffd70044');
-  globalMult*=1000000;updateUI();sfx('prestige');launchConfetti();
-  toast('👑 MODO LEGADO ATIVADO! Mult ×1.000.000! Visual Dourado!','rainbow');
+  globalMult*=10;updateUI();sfx('prestige');launchConfetti();
+  toast('👑 MODO LEGADO ATIVADO! Mult ×10! Visual Dourado!','rainbow');
 }
 
 // ══════════════════════════════════════════════════════
 // 🛠️ PAINEL DO CRIADOR (JOJO) com senha
 // ══════════════════════════════════════════════════════
-function criadorAcao(n){if(n===1){score+=1e20;totalEarned+=1e20;updateUI();toast('Criador: +1 Vigintilhao!','rainbow');}else if(n===2){globalMult*=1e6;updateUI();toast('Criador: Mult x1M!','rainbow');}else if(n===3){addGem(999);toast('Criador: 999 Gems!','rainbow');}else{launchConfetti();launchConfetti();launchConfetti();}}
+function criadorAcao(n){try{if(n===1){score+=1e9;totalEarned+=1e9;updateUI();}else if(n===2){globalMult*=10;updateUI();}else if(n===3){addGem(10);}else{launchConfetti();}}catch(e){}}
 function abrirPainelCriador(){
   const senha=prompt('🌿 Digite a senha do Criador:');
   if(senha!=='jojo2008'){toast('Senha errada!','red');return;}
@@ -8907,7 +8825,7 @@ function checkGravZero(){
     btn.style.position='';btn.style.left='';btn.style.top='';btn.style.zIndex='';
   }
 }
-setInterval(checkGravZero,5000);
+setInterval(()=>{try{checkGravZero();}catch(e){}},5000);
 
 // ══════════════════════════════════════════════════════
 // 💧 MODO ÁGUA
@@ -8941,7 +8859,7 @@ function checkModoDeus(){
   }
 }
 function ativarModoDeus(){
-  globalMult*=1e9;clickPower*=1e9;autoPerSec*=1e9;
+  globalMult*=5;clickPower*=3;autoPerSec*=3;
   document.body.style.background='radial-gradient(circle,#ffffff,#ffffaa,#ffaa00,#000)';
   toast('🌍 MODO DEUS DA NATUREZA! Tudo ×1 BILHÃO!!!','rainbow');
   sfx('prestige');launchConfetti();launchConfetti();launchConfetti();
@@ -8956,8 +8874,8 @@ function triggerEclipse(){
   ov.style.cssText='position:fixed;inset:0;z-index:600;background:radial-gradient(circle at 50% 50%,#000022 0%,#000044 30%,transparent 70%);pointer-events:none;animation:eclipseFade 600s linear forwards;';
   if(!document.getElementById('eclipseStyle')){const s=document.createElement('style');s.id='eclipseStyle';s.textContent='@keyframes eclipseFade{0%{opacity:0}5%{opacity:1}90%{opacity:1}100%{opacity:0}}';document.head.appendChild(s);}
   document.body.appendChild(ov);
-  const origClick=clickPower;clickPower*=20;updateUI();
-  toast('🌑 ECLIPSE! Click ×20 por 10 minutos!','rainbow');sfx('prestige');
+  const origClick=clickPower;clickPower*=3;updateUI();
+  toast('🌑 ECLIPSE! Click ×3 por 5 minutos!','rainbow');sfx('prestige');
   setTimeout(()=>{clickPower=origClick;updateUI();ov.remove();toast('🌑 Eclipse acabou.','green');},600000);
 }
 
@@ -8988,7 +8906,7 @@ function triggerMeteoros(){
 // 🌩️ EVENTO TEMPESTADE
 // ══════════════════════════════════════════════════════
 function triggerTempestade(){
-  const origAuto=autoPerSec;autoPerSec*=6;updateUI();
+  const origAuto=autoPerSec;autoPerSec*=2;updateUI();
   // Visual lightning
   const lt=document.createElement('div');
   lt.style.cssText='position:fixed;inset:0;z-index:599;pointer-events:none;';
@@ -8999,15 +8917,15 @@ function triggerTempestade(){
   }
   if(!document.getElementById('boltStyle')){const s=document.createElement('style');s.id='boltStyle';s.textContent='@keyframes boltFlash{0%,100%{opacity:0}50%{opacity:1}}';document.head.appendChild(s);}
   document.body.appendChild(lt);
-  toast('🌩️ TEMPESTADE! Auto ×6 por 3 minutos!','rainbow');sfx('prestige');
-  setTimeout(()=>{autoPerSec=origAuto;updateUI();lt.remove();toast('🌩️ Tempestade passou.','green');},180000);
+  toast('🌩️ TEMPESTADE! Auto ×2 por 90 segundos!','rainbow');sfx('prestige');
+  setTimeout(()=>{autoPerSec=origAuto;updateUI();lt.remove();toast('🌩️ Tempestade passou.','green');},90000);
 }
 
 // ══════════════════════════════════════════════════════
 // 🌊 EVENTO TSUNAMI
 // ══════════════════════════════════════════════════════
 function triggerTsunami(){
-  const acumulado=Math.floor(autoPerSec*600);// 10 min de auto
+  const acumulado=Math.floor(autoPerSec*180);// 10 min de auto
   score+=acumulado;totalEarned+=acumulado;updateUI();
   // Visual wave
   const w=document.createElement('div');
@@ -9016,7 +8934,7 @@ function triggerTsunami(){
   if(!document.getElementById('waveStyle')){const s=document.createElement('style');s.id='waveStyle';s.textContent='@keyframes waveSweep{0%{transform:translate(-100px,0)}100%{transform:translate(120vw,-100px)}}';document.head.appendChild(s);}
   document.body.appendChild(w);
   setTimeout(()=>w.remove(),3200);
-  toast('🌊 TSUNAMI! +'+fmt(acumulado)+' pts (10 min de auto)!','rainbow');sfx('prestige');
+  toast('🌊 TSUNAMI! +'+fmt(acumulado)+' pts (3 min de auto)!','rainbow');sfx('prestige');
 }
 
 // ══════════════════════════════════════════════════════
@@ -9031,9 +8949,9 @@ function triggerAliens(){
       a.style.cssText='position:fixed;left:'+Math.random()*85+'%;top:'+Math.random()*70+'%;font-size:2rem;z-index:910;cursor:pointer;animation:alienFloat 2s ease-in-out infinite;';
       if(!document.getElementById('alienStyle')){const s=document.createElement('style');s.id='alienStyle';s.textContent='@keyframes alienFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}';document.head.appendChild(s);}
       a.onclick=()=>{
-        defeated++;score+=clickPower*1000;totalEarned+=clickPower*1000;updateUI();
+        defeated++;score+=clickPower*5;totalEarned+=clickPower*5;updateUI();
         a.remove();
-        if(defeated>=total){globalMult*=2;updateUI();toast('👽 Planeta defendido! Mult ×2!','rainbow');}
+        if(defeated>=total){globalMult*=1.5;updateUI();toast('👽 Planeta defendido! Mult ×2!','rainbow');}
       };
       document.body.appendChild(a);
       setTimeout(()=>a.remove(),8000);
@@ -9045,14 +8963,14 @@ function triggerAliens(){
 // 💥 EVENTO SUPERNOVA
 // ══════════════════════════════════════════════════════
 function triggerSupernova(){
-  if(activeBioma!=='space'){toast('A Supernova só aparece no bioma Espaço!','red');return;}
+  if(activeBioma!=='space')return; // só no espaço
   const ov=document.createElement('div');
   ov.style.cssText='position:fixed;inset:0;z-index:600;background:radial-gradient(circle,#fff 0%,#ffaa00 30%,#ff4400 60%,transparent 80%);pointer-events:none;animation:supernovaEx .5s ease-out forwards;';
   if(!document.getElementById('supernovaStyle')){const s=document.createElement('style');s.id='supernovaStyle';s.textContent='@keyframes supernovaEx{0%{opacity:0;transform:scale(0)}50%{opacity:1;transform:scale(2)}100%{opacity:0;transform:scale(3)}}';document.head.appendChild(s);}
   document.body.appendChild(ov);
   setTimeout(()=>ov.remove(),600);
-  const origMult=globalMult;globalMult*=1000;updateUI();sfx('prestige');launchConfetti();
-  toast('💥 SUPERNOVA! Mult ×1000 por 10 segundos!!!','rainbow');
+  const origMult=globalMult;globalMult*=10;updateUI();sfx('prestige');
+  toast('💥 SUPERNOVA! Mult ×10 por 10 segundos!','rainbow');
   setTimeout(()=>{globalMult=origMult;updateUI();toast('💥 Supernova acabou.','green');},10000);
 }
 
@@ -9063,15 +8981,15 @@ let festivalAtivo=false;
 function triggerFestival(){
   if(festivalAtivo){toast('Festival já ativo!','red');return;}
   festivalAtivo=true;
-  const origMult=globalMult;globalMult*=5;updateUI();
-  launchConfetti();launchConfetti();sfx('prestige');
+  const origMult=globalMult;globalMult*=2;updateUI();
+  sfx('prestige');
   const banner=document.createElement('div');
   banner.id='festivalBanner';
   banner.style.cssText='position:fixed;top:0;left:0;right:0;z-index:1100;background:linear-gradient(90deg,#1d6b3a,#4ade80,#1d6b3a);color:#000;font-size:.65rem;font-weight:700;text-align:center;padding:.3rem;font-family:monospace;';
-  banner.textContent='🎉 FESTIVAL VERDE ATIVO — Tudo ×5 por 24h! 🎉';
+  banner.textContent='🎉 FESTIVAL VERDE ATIVO — Tudo ×2 por 2h! 🎉';
   document.body.prepend(banner);
-  toast('🎉 FESTIVAL VERDE! Tudo ×5 por 24 horas!','rainbow');
-  setTimeout(()=>{globalMult=origMult;festivalAtivo=false;banner.remove();updateUI();toast('🎉 Festival Verde acabou.','green');},86400000);
+  toast('🎉 FESTIVAL VERDE! Tudo ×2 por 2 horas!','rainbow');
+  setTimeout(()=>{globalMult=origMult;festivalAtivo=false;banner.remove();updateUI();toast('🎉 Festival Verde acabou.','green');},7200000);
 }
 // Festival Verde: triggered automaticamente via checkEventosAleatorios()
 
@@ -9144,10 +9062,10 @@ getRegadorSpeedMult=function(){return _origGetRegSpeed()*getLuaMult();};
 // ══════════════════════════════════════════════════════
 const PLANETAS=[
   {id:'marte',   nome:'Marte',  icon:'🔴',req:1e20,rew:()=>{globalMult*=10;},rewL:'Mult ×10'},
-  {id:'jupiter', nome:'Júpiter',icon:'🟠',req:1e22,rew:()=>{autoPerSec*=100;},rewL:'Auto ×100'},
-  {id:'saturno', nome:'Saturno',icon:'🪐',req:1e24,rew:()=>{clickPower*=100;},rewL:'Click ×100'},
-  {id:'urano',   nome:'Urano',  icon:'🔵',req:1e26,rew:()=>{globalMult*=1000;},rewL:'Mult ×1000'},
-  {id:'netuno',  nome:'Netuno', icon:'💜',req:1e28,rew:()=>{globalMult*=1e6;addGem(50);launchConfetti();},rewL:'Mult ×1.000.000 + 50 💠'},
+  {id:'jupiter', nome:'Júpiter',icon:'🟠',req:1e22,rew:()=>{autoPerSec*=10;},rewL:'Auto ×10'},
+  {id:'saturno', nome:'Saturno',icon:'🪐',req:1e24,rew:()=>{clickPower*=5;},rewL:'Click ×5'},
+  {id:'urano',   nome:'Urano',  icon:'🔵',req:1e26,rew:()=>{globalMult*=10;},rewL:'Mult ×10'},
+  {id:'netuno',  nome:'Netuno', icon:'💜',req:1e28,rew:()=>{globalMult*=20;addGem(10);launchConfetti();},rewL:'Mult ×20 + 10 💠'},
 ];
 let planetasRestaurados=new Set(JSON.parse(localStorage.getItem('cmnPlanetas')||'[]'));
 function checkPlanetas(){
@@ -9167,9 +9085,9 @@ function megaPrestige(){
   if(prestigeCount<100){toast('Precisa de 100 reflorestamentos!','red');return;}
   if(!confirm('MEGA PRESTIGE? Reseta tudo mas Mult ×1.000.000 + 5000 🍃!'))return;
   score=0;totalEarned=0;owned.clear();prestigeCount=0;
-  globalMult*=1000000;prestigeStars+=5000;addGem(50);
-  updateUI();renderBoosts();sfx('prestige');launchConfetti();launchConfetti();
-  toast('💥 MEGA PRESTIGE! Mult ×1.000.000 + 5000 🍃 + 50 💠!!!','rainbow');
+  globalMult*=15;prestigeStars+=100;addGem(5);
+  updateUI();renderBoosts();sfx('prestige');launchConfetti();
+  toast('💥 MEGA PRESTIGE! Mult ×15 + 200 🍃 + 10 💠!','rainbow');
 }
 
 // ══════════════════════════════════════════════════════
@@ -9179,7 +9097,7 @@ function checkEterno(){
   if(prestigeCount>=1000&&!localStorage.getItem('cmnEterno')){
     localStorage.setItem('cmnEterno','1');
     // Mult verdadeiramente absurdo
-    globalMult=Number.MAX_SAFE_INTEGER;updateUI();
+    globalMult*=50;updateUI();
     sfx('prestige');launchConfetti();launchConfetti();launchConfetti();
     showBadgeConquista('♾️','ETERNO!','1000 reflorestamentos! Você é ETERNO!');
     toast('♾️ ETERNO! Você atingiu o limite do universo!','rainbow');
@@ -9274,7 +9192,7 @@ const QUESTS=[
   {id:'q1',titulo:'A Grande Jornada',dias:1,icon:'🌱',passos:['Plante 10 sementes','Compre 5 boosts','Ganhe 1M de pontos'],rew:()=>{globalMult+=10;},rewL:'Mult +10'},
   {id:'q2',titulo:'O Caminho do Guerreiro',dias:3,icon:'⚔️',passos:['Faça 1000 cliques','Refloreste 1 vez','Desbloqueie 1 país'],rew:()=>{globalMult*=5;},rewL:'Mult ×5'},
   {id:'q3',titulo:'Mestre da Natureza',dias:7,icon:'🌿',passos:['Chegue ao rank Ouro','Compre 50 boosts','Colha 20 sementes','Ganhe 1 Trilhão'],rew:()=>{globalMult*=50;addGem(10);},rewL:'Mult ×50 + 10 💠'},
-  {id:'q4',titulo:'O Guardião Eterno',dias:30,icon:'👑',passos:['Refloreste 10 vezes','Restaure 10 países','Chegue ao rank Lendário','Compre todos os biomas'],rew:()=>{globalMult*=1000;addGem(100);launchConfetti();},rewL:'Mult ×1000 + 100 💠'},
+  {id:'q4',titulo:'O Guardião Eterno',dias:30,icon:'👑',passos:['Refloreste 10 vezes','Restaure 10 países','Chegue ao rank Lendário','Compre todos os biomas'],rew:()=>{globalMult*=10;addGem(10);launchConfetti();},rewL:'Mult ×10 + 10 💠'},
 ];
 let questsAtivas=JSON.parse(localStorage.getItem('cmnQuestsAtivas')||'{}');
 let questsConcluidas=new Set(JSON.parse(localStorage.getItem('cmnQuestsDone')||'[]'));
@@ -9372,7 +9290,7 @@ function comprarAtomico(){
   score-=custo;updateUI();
   atomicoBought=true;localStorage.setItem('cmnAtomico',todayDateKey());
   toast('☢️ Boost Atômico comprado! Explode em 1 hora com Mult ×1000!','rainbow');
-  setTimeout(()=>{globalMult*=1000;updateUI();sfx('prestige');launchConfetti();launchConfetti();toast('☢️ BOOM! Boost Atômico explodiu! Mult ×1000!','rainbow');},3600000);
+  setTimeout(()=>{globalMult*=5;updateUI();sfx('prestige');launchConfetti();toast('☢️ BOOM! Boost Atômico explodiu! Mult ×5!','rainbow');},3600000);
 }
 
 // ══════════════════════════════════════════════════════
@@ -9382,8 +9300,8 @@ function comprarAtomico(){
   const h=new Date().getHours();
   if(h>=3&&h<4&&!localStorage.getItem('cmnMadrug'+new Date().toDateString())){
     localStorage.setItem('cmnMadrug'+new Date().toDateString(),'1');
-    globalMult+=15;updateUI();sfx('prestige');
-    showBadgeConquista('🌙','MADRUGADOR!','Jogando às 3h da manhã! Mult +15!');
+    globalMult+=3;updateUI();sfx('prestige');
+    showBadgeConquista('🌙','MADRUGADOR!','Jogando às 3h da manhã! Mult +3!');
     toast('🌙 CONQUISTA MADRUGADOR! Mult +15!','rainbow');
   }
 }catch(e){}})();
@@ -9396,7 +9314,7 @@ function comprarAtomico(){
   const sessaoMs=Date.now()-sessaoStart;
   if(sessaoMs>=86400000&&!localStorage.getItem('cmnConquistaFinal')){
     localStorage.setItem('cmnConquistaFinal','1');
-    globalMult*=1e10;addGem(1000);updateUI();sfx('prestige');launchConfetti();launchConfetti();launchConfetti();
+    globalMult*=3;addGem(5);updateUI();sfx('prestige');launchConfetti();launchConfetti();launchConfetti();
     showBadgeConquista('🌟','CONQUISTA FINAL!','24 horas seguidas! Mult ×10B + 1000 💠!!!');
   }
 }catch(e){}})();
@@ -9404,6 +9322,8 @@ function comprarAtomico(){
 // ══════════════════════════════════════════════════════
 // 🔄 COMBINAR CHECKLOOP
 // ══════════════════════════════════════════════════════
+
+
 function admConfettiSafe(){try{toast('🎉','rainbow');}catch(e){}}
 
 // ══════════════════════════════════════════════════════
@@ -9750,7 +9670,7 @@ function checkTrofeus(){
   if(isNaN(played)||played<0||played<TEN_YEARS)return;
   localStorage.setItem('cmnTenYearDone','1');
   // recompensas massivas
-  globalMult*=1e9; prestigeStars+=9999; score+=1e30;totalEarned+=1e30;
+  globalMult*=20; prestigeStars+=50; score+=1e9;totalEarned+=1e9;
   SKINS.forEach(s=>{s.req=0;s.achv=null;});
   updateUI();checkPrestige();
   // tela cinematográfica
@@ -9830,7 +9750,7 @@ function spawnSkyGift(){
     let rewardFmt=chosen.label;
     if(isInfinito){
       // INFINITO: dá um multiplicador global x1.000 pra sempre
-      globalMult*=1000;updateUI();
+      globalMult*=8;updateUI();
       rewardFmt='MULT ×1000 PERMANENTE';
     } else {
       score+=chosen.reward;totalEarned+=chosen.reward;
@@ -10570,11 +10490,12 @@ setInterval(()=>{
   verificarDragaoAdulto();
   checkPlanetas();
   checkEterno();
-  if(getBonusSol()>1)clickPower*=getBonusSol(); // sol temporario no doClick
+  // getBonusSol() aplicado em doClick diretamente
   addXP(1);
   // Atualiza XP bar
-  try{const xb=document.getElementById('xpBar');if(xb)xb.textContent='⭐ Nível '+xpNivel+' · XP: '+xpTotal+'/'+xpParaProxNivel(xpNivel);
-  renderSazonalExtra();}catch(e){}
+  try{
+    const xb=document.getElementById('xpBar');if(xb)xb.textContent='⭐ Nível '+xpNivel+' · XP: '+xpTotal+'/'+xpParaProxNivel(xpNivel);
+  }catch(e){}
   tickWeather();
   tickSkyGifts();
   const sgt=document.getElementById('skyGiftTimer');
